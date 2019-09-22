@@ -121,6 +121,30 @@ PUB ShuntADCRes(bits) | tmp
     tmp := (tmp | bits) & core#CONFIG_MASK
     writeReg(core#CONFIG, 2, @tmp)
 
+PUB ShuntSamples(samples) | tmp
+' Set number of shunt ADC samples to take when averaging
+'   Valid values: 1, 2, 4, 8, 16, 32, 64, 128
+'   Any other value polls the chip and returns the current setting
+'   NOTE: All averaging modes are performed at 12-bit resolution
+'   NOTE: Conversion time is approx 532uSec * number of samples
+'   NOTE: 1 effectively disables averaging
+    tmp := $0000
+    readReg(core#CONFIG, 2, @tmp)
+    case samples
+        1, 2, 4, 8, 16, 32, 64, 128:
+            samples := (1 << core#FLD_SADC_AVG) | (lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#FLD_SADC)
+        OTHER:
+            tmp := (tmp >> core#FLD_SADC) & core#BITS_SADC
+            if tmp & %1000
+                tmp &= %0111
+                return lookupz(tmp: 1, 2, 4, 8, 16, 32, 64, 128)
+            else
+                return 0
+
+    tmp &= core#MASK_SADC
+    tmp := (tmp | samples) & core#CONFIG_MASK
+    writeReg(core#CONFIG, 2, @tmp)
+
 PRI readReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
 '' Read num_bytes from the slave device into the address stored in buff_addr
     case reg                                                    'Basic register validation
