@@ -68,6 +68,10 @@ PUB Calibration(val) | tmp
     tmp := val & core#CALIBRATION_MASK
     writeReg(core#CALIBRATION, 2, @tmp)
 
+PUB ConfigWord
+' debug: return value of config register
+    readReg(core#CONFIG, 2, @result)
+
 PUB ID
 ' Identify the device
 '   Returns: POR value of the configuration register
