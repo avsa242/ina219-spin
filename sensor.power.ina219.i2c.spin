@@ -52,6 +52,22 @@ PUB Stop
 
     i2c.terminate
 
+PUB Calibration(val) | tmp
+' Set calibration value, used in current calculation
+'   Valid values: *0..65535
+'   Any other value polls the chip and returns the current setting
+'   NOTE: The LSB is read-only and is always 0
+'   NOTE: Current readings will always be 0 after POR, until this value is set
+    tmp := $0000
+    readReg(core#CALIBRATION, 2, @tmp)
+    case val
+        0..65535:
+        OTHER:
+            return tmp
+
+    tmp := val & core#CALIBRATION_MASK
+    writeReg(core#CALIBRATION, 2, @tmp)
+
 PUB ID
 ' Identify the device
 '   Returns: POR value of the configuration register
