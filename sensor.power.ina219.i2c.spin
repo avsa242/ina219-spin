@@ -49,7 +49,7 @@ PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
     return FALSE                                                'If we got here, something went wrong
 
 PUB Stop
-' Put any other housekeeping code here required/recommended by your device before shutting down
+
     i2c.terminate
 
 PUB ID
@@ -89,10 +89,11 @@ PRI writeReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
         $00, $05:
             cmd_packet.byte[0] := SLAVE_WR
             cmd_packet.byte[1] := reg
+            cmd_packet.byte[2] := byte[buff_addr][1]
+            cmd_packet.byte[3] := byte[buff_addr][0]
+
             i2c.start
-            i2c.wr_block (@cmd_packet, 2)
-            i2c.write (byte[buff_addr][1])
-            i2c.write (byte[buff_addr][0])
+            i2c.wr_block (@cmd_packet, 4)
             i2c.stop
         OTHER:
             return

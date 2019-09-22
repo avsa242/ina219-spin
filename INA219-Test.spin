@@ -12,21 +12,22 @@
 
 CON
 
-    _clkmode    = cfg#_clkmode
-    _xinfreq    = cfg#_xinfreq
+    _clkmode        = cfg#_clkmode
+    _xinfreq        = cfg#_xinfreq
 
-    SCL_PIN     = 28
-    SDA_PIN     = 29
-    I2C_HZ      = 400_000
+    SCL_PIN         = 28
+    SDA_PIN         = 29
+    I2C_HZ          = 400_000
 
-    LED         = cfg#LED1
+    LED             = cfg#LED1
 
 OBJ
 
-    cfg   : "core.con.boardcfg.flip"
-    ser   : "com.serial.terminal"
-    time  : "time"
-    ina219: "sensor.power.ina219.i2c"
+    cfg     : "core.con.boardcfg.flip"
+    ser     : "com.serial.terminal"
+    time    : "time"
+    ina219  : "sensor.power.ina219.i2c"
+    int     : "string.integer"
 
 VAR
 
@@ -35,7 +36,6 @@ VAR
 PUB Main
 
     Setup
-
     Flash (LED, 100)
 
 PUB Setup
