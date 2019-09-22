@@ -43,6 +43,7 @@ PUB Main | vbus, vbus_min, vbus_max, vshunt, vshunt_min, vshunt_max, i, i_min, i
     Setup
     ina219.Calibration (20480)
     ina219.BusVoltageRange (32)
+    ina219.ShuntVoltageRange (320)
     ina219.ShuntADCRes (12)
 '    ina219.ShuntSamples (128)
     ina219.BusADCRes (12)
