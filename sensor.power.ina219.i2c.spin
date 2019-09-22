@@ -103,6 +103,24 @@ PUB Reset
     result := (1 << core#FLD_RST)
     writeReg(core#CONFIG, 2, @result)
 
+PUB ShuntADCRes(bits) | tmp
+' Set shunt ADC resolution, in bits
+'   Valid values: 9, 10, 11, *12
+'   Any other value polls the chip and returns the current setting
+    tmp := $0000
+    readReg(core#CONFIG, 2, @tmp)
+    case bits
+        9, 10, 11, 12:
+            bits := lookdownz(bits: 9, 10, 11, 12) << core#FLD_SADC
+        OTHER:
+            tmp := (tmp >> core#FLD_SADC) & core#BITS_SADC
+            result := lookupz(tmp: 9, 10, 11, 12)
+            return
+
+    tmp &= core#MASK_SADC
+    tmp := (tmp | bits) & core#CONFIG_MASK
+    writeReg(core#CONFIG, 2, @tmp)
+
 PRI readReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
 '' Read num_bytes from the slave device into the address stored in buff_addr
     case reg                                                    'Basic register validation
