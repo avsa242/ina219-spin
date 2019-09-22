@@ -145,6 +145,25 @@ PUB ShuntSamples(samples) | tmp
     tmp := (tmp | samples) & core#CONFIG_MASK
     writeReg(core#CONFIG, 2, @tmp)
 
+PUB ShuntVoltageRange(mV) | tmp
+' Set shunt voltage range, in millivolts
+'   Valid values: 40, 80, 160, 320
+'   Any other value polls the chip and returns the current setting
+'   Example: Setting of 40 means +/- 40mV
+    tmp := $0000
+    readReg(core#CONFIG, 2, @tmp)
+    case mV
+        40, 80, 160, 320:
+            mV := lookdownz(mV: 40, 80, 160, 320) << core#FLD_BRNG
+        OTHER:
+            tmp := (tmp >> core#FLD_BRNG) & %1
+            result := lookupz(tmp: 40, 80, 160, 320)
+            return
+
+    tmp &= core#MASK_PG
+    tmp := (tmp | mV) & core#CONFIG_MASK
+    writeReg(core#CONFIG, 2, @tmp)
+
 PRI readReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
 '' Read num_bytes from the slave device into the address stored in buff_addr
     case reg                                                    'Basic register validation
