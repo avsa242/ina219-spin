@@ -1,11 +1,11 @@
 {
     --------------------------------------------
-    Filename: INA219-Test.spin
+    Filename: INA219-Demo.spin
     Author: Jesse Burt
-    Description: Test of the INA219 driver
+    Description: Demo of the INA219 driver
     Copyright (c) 2019
     Started Sep 18, 2019
-    Updated Sep 18, 2019
+    Updated Sep 22, 2019
     See end of file for terms of use.
     --------------------------------------------
 }
