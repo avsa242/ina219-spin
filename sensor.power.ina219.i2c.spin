@@ -80,6 +80,24 @@ PUB BusADCRes(bits) | tmp
     tmp := (tmp | bits) & core#CONFIG_MASK
     writeReg(core#CONFIG, 2, @tmp)
 
+PUB BusVoltageRange(volts) | tmp
+' Set bus voltage range
+'   Valid values: 16, *32
+'   Any other value polls the chip and returns the current setting
+    tmp := $0000
+    readReg(core#CONFIG, 2, @tmp)
+    case volts
+        16, 32:
+            volts := lookdownz(volts: 16, 32) << core#FLD_BRNG
+        OTHER:
+            tmp := (tmp >> core#FLD_BRNG) & %1
+            result := lookupz(tmp: 16, 32)
+            return
+
+    tmp &= core#MASK_BRNG
+    tmp := (tmp | volts) & core#CONFIG_MASK
+    writeReg(core#CONFIG, 2, @tmp)
+
 PUB Reset
 ' Perform a soft-reset of the chip
     result := (1 << core#FLD_RST)
