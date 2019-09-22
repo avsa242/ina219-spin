@@ -62,6 +62,24 @@ PUB ID
     readReg(core#CONFIG, 2, @result)
     return result
 
+PUB BusADCRes(bits) | tmp
+' Set bus ADC resolution, in bits
+'   Valid values: 9, 10, 11, *12
+'   Any other value polls the chip and returns the current setting
+    tmp := $0000
+    readReg(core#CONFIG, 2, @tmp)
+    case bits
+        9, 10, 11, 12:
+            bits := lookdownz(bits: 9, 10, 11, 12) << core#FLD_BADC
+        OTHER:
+            tmp := (tmp >> core#FLD_BADC) & core#BITS_BADC
+            result := lookupz(tmp: 9, 10, 11, 12)
+            return
+
+    tmp &= core#MASK_BADC
+    tmp := (tmp | bits) & core#CONFIG_MASK
+    writeReg(core#CONFIG, 2, @tmp)
+
 PUB Reset
 ' Perform a soft-reset of the chip
     result := (1 << core#FLD_RST)
