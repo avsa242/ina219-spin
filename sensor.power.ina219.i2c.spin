@@ -119,10 +119,11 @@ PUB ConfigWord
 
 PUB Current
 ' Read current flowing through shunt resistor
-'   Returns: Current in milliamps
+'   Returns: Current in microamps
     readReg(core#CURRENT, 2, @result)
     ~~result
-    result /= 5
+'    result /= 5
+    result *= 20
 
 PUB ID
 ' Identify the device
