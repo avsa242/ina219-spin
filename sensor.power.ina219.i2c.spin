@@ -205,9 +205,9 @@ PUB ShuntVoltageRange(mV) | tmp
     readReg(core#CONFIG, 2, @tmp)
     case mV
         40, 80, 160, 320:
-            mV := lookdownz(mV: 40, 80, 160, 320) << core#FLD_BRNG
+            mV := lookdownz(mV: 40, 80, 160, 320) << core#FLD_PG
         OTHER:
-            tmp := (tmp >> core#FLD_BRNG) & %1
+            tmp := (tmp >> core#FLD_PG) & core#BITS_PG
             result := lookupz(tmp: 40, 80, 160, 320)
             return
 
