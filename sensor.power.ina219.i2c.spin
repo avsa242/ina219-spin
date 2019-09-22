@@ -52,35 +52,14 @@ PUB Stop
 
     i2c.terminate
 
-PUB Calibration(val) | tmp
-' Set calibration value, used in current calculation
-'   Valid values: *0..65535
-'   Any other value polls the chip and returns the current setting
-'   NOTE: The LSB is read-only and is always 0
-'   NOTE: Current readings will always be 0 after POR, until this value is set
-    tmp := $0000
-    readReg(core#CALIBRATION, 2, @tmp)
-    case val
-        0..65535:
-        OTHER:
-            return tmp
-
-    tmp := val & core#CALIBRATION_MASK
-    writeReg(core#CALIBRATION, 2, @tmp)
-
-PUB ConfigWord
-' debug: return value of config register
-    readReg(core#CONFIG, 2, @result)
-
-PUB ID
-' Identify the device
-'   Returns: POR value of the configuration register
-'   NOTE: This method performs a soft-reset of the chip and reads the value of the configuration register,
-'       thus it isn't an ID, per se
+PUB BusVoltage
+' Read bus voltage
+'   Returns: Voltage in millivolts
     result := $0000
-    Reset
-    readReg(core#CONFIG, 2, @result)
-    return result
+    readReg(core#BUS_VOLTAGE, 2, @result)
+    result ~>= 3                            'Chop off the 3 LSBs (as they're status bits, not part of the measurement),
+                                            '   and preserve the sign.
+    result *= 4
 
 PUB BusADCRes(bits) | tmp
 ' Set bus ADC resolution, in bits
@@ -117,6 +96,50 @@ PUB BusVoltageRange(volts) | tmp
     tmp &= core#MASK_BRNG
     tmp := (tmp | volts) & core#CONFIG_MASK
     writeReg(core#CONFIG, 2, @tmp)
+
+PUB Calibration(val) | tmp
+' Set calibration value, used in current calculation
+'   Valid values: *0..65535
+'   Any other value polls the chip and returns the current setting
+'   NOTE: The LSB is read-only and is always 0
+'   NOTE: Current readings will always be 0 after POR, until this value is set
+    tmp := $0000
+    readReg(core#CALIBRATION, 2, @tmp)
+    case val
+        0..65535:
+        OTHER:
+            return tmp
+
+    tmp := val & core#CALIBRATION_MASK
+    writeReg(core#CALIBRATION, 2, @tmp)
+
+PUB ConfigWord
+' debug: return value of config register
+    readReg(core#CONFIG, 2, @result)
+
+PUB Current
+' Read current flowing through shunt resistor
+'   Returns: Current in milliamps
+    readReg(core#CURRENT, 2, @result)
+    ~~result
+    result /= 5
+
+PUB ID
+' Identify the device
+'   Returns: POR value of the configuration register
+'   NOTE: This method performs a soft-reset of the chip and reads the value of the configuration register,
+'       thus it isn't an ID, per se
+    result := $0000
+    Reset
+    readReg(core#CONFIG, 2, @result)
+    return result
+
+PUB Power
+' Read power (calculated on-chip)
+'   Returns: Power in microwatts
+    result := $0000
+    readReg(core#POWER, 2, @result)
+    result *= 400
 
 PUB Reset
 ' Perform a soft-reset of the chip
@@ -164,6 +187,13 @@ PUB ShuntSamples(samples) | tmp
     tmp &= core#MASK_SADC
     tmp := (tmp | samples) & core#CONFIG_MASK
     writeReg(core#CONFIG, 2, @tmp)
+
+PUB ShuntVoltage
+' Read shunt voltage
+'   Returns: Voltage in millivolts
+    readReg(core#SHUNT_VOLTAGE, 2, @result)
+    ~~result
+    return result * 10
 
 PUB ShuntVoltageRange(mV) | tmp
 ' Set shunt voltage range, in millivolts
