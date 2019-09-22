@@ -19,6 +19,11 @@ CON
     SDA_PIN         = 29
     I2C_HZ          = 400_000
 
+    COL_REG         = 0
+    COL_SET         = COL_REG+20
+    COL_READ        = COL_SET+20
+    COL_PF          = COL_READ+18
+
     LED             = cfg#LED1
 
 OBJ
@@ -31,12 +36,121 @@ OBJ
 
 VAR
 
-    byte _ser_cog
+    long _fails, _expanded
+    byte _ser_cog, _row
 
 PUB Main
 
     Setup
+    _row := 3
+    ser.Position (0, _row)
+
+    PG (1)
+    SADC_SAMP (1)
+    SADC (1)
+    BRNG (1)
+    BADC (1)
     Flash (LED, 100)
+
+PUB PG(reps) | tmp, read
+
+    _expanded := TRUE
+    _row++
+    repeat reps
+        repeat tmp from 1 to 4
+            ina219.ShuntVoltageRange (lookup(tmp: 40, 80, 160, 320))
+            read := ina219.ShuntVoltageRange (-2)
+            Message (string("PG"), lookup(tmp: 40, 80, 160, 320), read)
+
+PUB SADC_SAMP(reps) | tmp, read
+
+    _expanded := TRUE
+    _row++
+    repeat reps
+        repeat tmp from 1 to 8
+            ina219.ShuntSamples (lookup(tmp: 1, 2, 4, 8, 16, 32, 64, 128))
+            read := ina219.ShuntSamples (-2)
+            Message (string("SADC_SAMP"), lookup(tmp: 1, 2, 4, 8, 16, 32, 64, 128), read)
+
+PUB SADC(reps) | tmp, read
+
+    _expanded := TRUE
+    _row++
+    repeat reps
+        repeat tmp from 1 to 4
+            ina219.ShuntADCRes (lookup(tmp: 9, 10, 11, 12))
+            read := ina219.ShuntADCRes (-2)
+            Message (string("SADC"), lookup(tmp: 9, 10, 11, 12), read)
+
+PUB BRNG(reps) | tmp, read
+
+    _expanded := TRUE
+    _row++
+    repeat reps
+        repeat tmp from 1 to 2
+            ina219.BusVoltageRange (lookup(tmp: 16, 32))
+            read := ina219.BusVoltageRange (-2)
+            Message (string("BRNG"), lookup(tmp: 16, 32), read)
+
+PUB BADC(reps) | tmp, read
+
+    _expanded := TRUE
+    _row++
+    repeat reps
+        repeat tmp from 1 to 4
+            ina219.BusADCRes (lookup(tmp: 9, 10, 11, 12))
+            read := ina219.BusADCRes (-2)
+            Message (string("BADC"), lookup(tmp: 9, 10, 11, 12), read)
+
+PUB Message(field, arg1, arg2)
+
+    case _expanded
+        TRUE:
+            ser.PositionX (COL_REG)
+            ser.Str (field)
+
+            ser.PositionX (COL_SET)
+            ser.Str (string("SET: "))
+            ser.Dec (arg1)
+
+            ser.PositionX (COL_READ)
+            ser.Str (string("READ: "))
+            ser.Dec (arg2)
+            ser.Chars (32, 3)
+            ser.PositionX (COL_PF)
+            PassFail (arg1 == arg2)
+            ser.NewLine
+
+        FALSE:
+            ser.Position (COL_REG, _row)
+            ser.Str (field)
+
+            ser.Position (COL_SET, _row)
+            ser.Str (string("SET: "))
+            ser.Dec (arg1)
+
+            ser.Position (COL_READ, _row)
+            ser.Str (string("READ: "))
+            ser.Dec (arg2)
+
+            ser.Position (COL_PF, _row)
+            PassFail (arg1 == arg2)
+            ser.NewLine
+        OTHER:
+            ser.Str (string("DEADBEEF"))
+
+PUB PassFail(num)
+
+    case num
+        0:
+            ser.Str (string("FAIL"))
+            _fails++
+
+        -1:
+            ser.Str (string("PASS"))
+
+        OTHER:
+            ser.Str (string("???"))
 
 PUB Setup
 
