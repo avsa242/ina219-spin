@@ -3,9 +3,9 @@
     Filename: sensor.power.ina219.i2c.spin
     Author: Jesse Burt
     Description: Driver of the TI INA219 current/power monitor IC
-    Copyright (c) 2019
+    Copyright (c) 2020
     Started Sep 18, 2019
-    Updated Sep 22, 2019
+    Updated Jan 18, 2020
     See end of file for terms of use.
     --------------------------------------------
 }

@@ -1,11 +1,11 @@
 # ina219-spin 
 -------------
 
-This is a P8X32A/Propeller driver object for the TI INA219 current/power monitor IC.
+This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the TI INA219 current/power monitor IC.
 
 ## Salient Features
 
-* I2C connection at up to 2.56MHz (tested up to 400kHz)
+* I2C connection at up to 2.56MHz (P1), _TBD_ (P2)
 * Read shunt voltage
 * Read bus voltage
 * Read power measured by the chip
@@ -14,7 +14,13 @@ This is a P8X32A/Propeller driver object for the TI INA219 current/power monitor
 
 ## Requirements
 
-* 1 extra core/cog for the PASM I2C driver
+* P1/SPIN1: 1 extra core/cog for the PASM I2C driver
+* P2/SPIN2: N/A
+
+## Compiler Compatibility
+
+* SPIN1: OpenSpin (tested with 1.00.81)
+* SPIN2: FastSpin (tested with 4.1.0-beta)
 
 ## Limitations
 
