@@ -12,21 +12,21 @@
 
 CON
 
-    XTAL        = cfg#XTAL
-    XDIV        = cfg#XDIV
-    XMUL        = cfg#XMUL
-    XDIVP       = cfg#XDIVP
-    XOSC        = cfg#XOSC
-    XSEL        = cfg#XSEL
-    XPPPP       = cfg#XPPPP
-    CLOCKFREQ   = cfg#CLOCKFREQ
-    SETFREQ     = cfg#SETFREQ
-    ENAFREQ     = cfg#ENAFREQ
+    XTAL            = cfg#XTAL
+    XDIV            = cfg#XDIV
+    XMUL            = cfg#XMUL
+    XDIVP           = cfg#XDIVP
+    XOSC            = cfg#XOSC
+    XSEL            = cfg#XSEL
+    XPPPP           = cfg#XPPPP
+    CLOCKFREQ       = cfg#CLOCKFREQ
+    SETFREQ         = cfg#SETFREQ
+    ENAFREQ         = cfg#ENAFREQ
 
-    LED         = cfg#LED1
-    SER_RX      = cfg#SER_RX
-    SER_TX      = cfg#SER_TX
-    SER_BAUD    = 2_000_000
+    LED             = cfg#LED1
+    SER_RX          = cfg#SER_RX
+    SER_TX          = cfg#SER_TX
+    SER_BAUD        = 2_000_000
 
     SCL_PIN         = 27
     SDA_PIN         = 28

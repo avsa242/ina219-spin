@@ -43,7 +43,7 @@ PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
             if okay := i2c.Setup (SCL_PIN, SDA_PIN, I2C_HZ)    'I2C Object Started?
                 time.MSleep (1)
                 if i2c.present (SLAVE_WR)                       'Response from device?
-                    if ID == core#CONFIG_POR
+                    if DeviceID == core#CONFIG_POR
                         return okay
 
     return FALSE                                                'If we got here, something went wrong
@@ -123,7 +123,7 @@ PUB Current
     ~~result
     result *= 20
 
-PUB ID
+PUB DeviceID
 ' Identify the device
 '   Returns: POR value of the configuration register
 '   NOTE: This method performs a soft-reset of the chip and reads the value of the configuration register,
