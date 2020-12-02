@@ -5,7 +5,7 @@
     Description: Driver of the TI INA219 current/power monitor IC
     Copyright (c) 2020
     Started Sep 18, 2019
-    Updated Jan 18, 2020
+    Updated Dec 2, 2020
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -17,7 +17,7 @@ CON
 
     DEF_SCL           = 28
     DEF_SDA           = 29
-    DEF_HZ            = 400_000
+    DEF_HZ            = 100_000
     I2C_MAX_FREQ      = core#I2C_MAX_FREQ
 
 VAR
@@ -29,221 +29,215 @@ OBJ
     core: "core.con.ina219.spin"
     time: "time"
 
-PUB Null
-''This is not a top-level object
+PUB Null{}
+' This is not a top-level object
 
-PUB Start: okay                                                 'Default to "standard" Propeller I2C pins and 400kHz
+PUB Start{}: okay
+' Start using "standard" Propeller I2C pins and 100kHz
 
-    okay := Startx (DEF_SCL, DEF_SDA, DEF_HZ)
+    okay := startx(DEF_SCL, DEF_SDA, DEF_HZ)
 
 PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
-
+' Start using custom settings
     if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31)
         if I2C_HZ =< core#I2C_MAX_FREQ
-            if okay := i2c.setupx (SCL_PIN, SDA_PIN, I2C_HZ)    'I2C Object Started?
-                time.MSleep (1)
-                if i2c.present (SLAVE_WR)                       'Response from device?
-                    if DeviceID == core#CONFIG_POR
+            if okay := i2c.setupx (SCL_PIN, SDA_PIN, I2C_HZ)
+                time.msleep(1)
+                if i2c.present (SLAVE_WR)       ' check device bus presence
+                    if deviceid{} == core#CONFIG_POR
                         return okay
 
-    return FALSE                                                'If we got here, something went wrong
+    return FALSE                                ' something above failed
 
-PUB Stop
+PUB Stop{}
 
-    i2c.terminate
+    i2c.terminate{}
 
-PUB BusVoltage
+PUB BusVoltage{}: v
 ' Read bus voltage
 '   Returns: Voltage in millivolts
-    result := $0000
-    readReg(core#BUS_VOLTAGE, 2, @result)
-    result ~>= 3                            'Chop off the 3 LSBs (as they're status bits, not part of the measurement),
-                                            '   and preserve the sign.
-    result *= 4
+    v := 0
+    readreg(core#BUS_VOLTAGE, 2, @v)
+    v ~>= 3                                     ' chop off the 3 LSBs (not part
+    v *= 4                                      ' of the measurement), but
+                                                ' preserve the sign
 
-PUB BusADCRes(bits) | tmp
+PUB BusADCRes(adcres): curr_res
 ' Set bus ADC resolution, in bits
 '   Valid values: 9, 10, 11, *12
 '   Any other value polls the chip and returns the current setting
-    tmp := $0000
-    readReg(core#CONFIG, 2, @tmp)
-    case bits
+    curr_res := 0
+    readreg(core#CONFIG, 2, @curr_res)
+    case adcres
         9, 10, 11, 12:
-            bits := lookdownz(bits: 9, 10, 11, 12) << core#FLD_BADC
-        OTHER:
-            tmp := (tmp >> core#FLD_BADC) & core#BITS_BADC
-            result := lookupz(tmp: 9, 10, 11, 12)
-            return
+            adcres := lookdownz(adcres: 9, 10, 11, 12) << core#FLD_BADC
+        other:
+            curr_res := (curr_res >> core#FLD_BADC) & core#BITS_BADC
+            return lookupz(curr_res: 9, 10, 11, 12)
 
-    tmp &= core#MASK_BADC
-    tmp := (tmp | bits) & core#CONFIG_MASK
-    writeReg(core#CONFIG, 2, @tmp)
+    curr_res &= core#MASK_BADC
+    curr_res := (curr_res | adcres) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @curr_res)
 
-PUB BusVoltageRange(volts) | tmp
+PUB BusVoltageRange(range): curr_rng
 ' Set bus voltage range
 '   Valid values: 16, *32
 '   Any other value polls the chip and returns the current setting
-    tmp := $0000
-    readReg(core#CONFIG, 2, @tmp)
-    case volts
+    curr_rng := 0
+    readreg(core#CONFIG, 2, @curr_rng)
+    case range
         16, 32:
-            volts := lookdownz(volts: 16, 32) << core#FLD_BRNG
-        OTHER:
-            tmp := (tmp >> core#FLD_BRNG) & %1
-            result := lookupz(tmp: 16, 32)
-            return
+            range := lookdownz(range: 16, 32) << core#FLD_BRNG
+        other:
+            curr_rng := (curr_rng >> core#FLD_BRNG) & %1
+            return lookupz(curr_rng: 16, 32)
 
-    tmp &= core#MASK_BRNG
-    tmp := (tmp | volts) & core#CONFIG_MASK
-    writeReg(core#CONFIG, 2, @tmp)
+    curr_rng &= core#MASK_BRNG
+    curr_rng := (curr_rng | range) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @curr_rng)
 
-PUB Calibration(val) | tmp
+PUB Calibration(val): curr_val
 ' Set calibration value, used in current calculation
 '   Valid values: *0..65535
 '   Any other value polls the chip and returns the current setting
 '   NOTE: The LSB is read-only and is always 0
 '   NOTE: Current readings will always be 0 after POR, until this value is set
-    tmp := $0000
-    readReg(core#CALIBRATION, 2, @tmp)
     case val
         0..65535:
-        OTHER:
-            return tmp
+            curr_val := val & core#CALIBRATION_MASK
+            writereg(core#CALIBRATION, 2, @curr_val)
+        other:
+            curr_val := 0
+            readreg(core#CALIBRATION, 2, @curr_val)
+            return
 
-    tmp := val & core#CALIBRATION_MASK
-    writeReg(core#CALIBRATION, 2, @tmp)
-
-PUB ConfigWord
+PUB ConfigWord{}: cfg_word
 ' debug: return value of config register
-    readReg(core#CONFIG, 2, @result)
+    readreg(core#CONFIG, 2, @cfg_word)
 
-PUB Current
+PUB Current{}: a
 ' Read current flowing through shunt resistor
 '   Returns: Current in microamps
-    readReg(core#CURRENT, 2, @result)
-    ~~result
+    readreg(core#CURRENT, 2, @a)
 '    result /= 5
-    result *= 20
+    return (~~a * 20)
 
-PUB DeviceID
+PUB DeviceID{}: id
 ' Identify the device
 '   Returns: POR value of the configuration register
 '   NOTE: This method performs a soft-reset of the chip and reads the value of the configuration register,
 '       thus it isn't an ID, per se
-    result := $0000
-    Reset
-    readReg(core#CONFIG, 2, @result)
-    return result
+    id := 0
+    reset{}
+    readreg(core#CONFIG, 2, @id)
 
-PUB Power
+PUB Power{}: w
 ' Read power (calculated on-chip)
 '   Returns: Power in microwatts
-    result := $0000
-    readReg(core#POWER, 2, @result)
-    result *= 400
+    w := 0
+    readreg(core#POWER, 2, @w)
+    w *= 400
 
-PUB Reset
+PUB Reset{} | tmp
 ' Perform a soft-reset of the chip
-    result := (1 << core#FLD_RST)
-    writeReg(core#CONFIG, 2, @result)
+    tmp := (1 << core#FLD_RST)
+    writereg(core#CONFIG, 2, @tmp)
 
-PUB ShuntADCRes(bits) | tmp
+PUB ShuntADCRes(adc_res): curr_res
 ' Set shunt ADC resolution, in bits
 '   Valid values: 9, 10, 11, *12
 '   Any other value polls the chip and returns the current setting
-    tmp := $0000
-    readReg(core#CONFIG, 2, @tmp)
-    case bits
+    curr_res := 0
+    readreg(core#CONFIG, 2, @curr_res)
+    case adc_res
         9, 10, 11, 12:
-            bits := lookdownz(bits: 9, 10, 11, 12) << core#FLD_SADC
-        OTHER:
-            tmp := (tmp >> core#FLD_SADC) & core#BITS_SADC
-            result := lookupz(tmp: 9, 10, 11, 12)
-            return
+            adc_res := lookdownz(adc_res: 9, 10, 11, 12) << core#FLD_SADC
+        other:
+            curr_res := (curr_res >> core#FLD_SADC) & core#BITS_SADC
+            return lookupz(curr_res: 9, 10, 11, 12)
 
-    tmp &= core#MASK_SADC
-    tmp := (tmp | bits) & core#CONFIG_MASK
-    writeReg(core#CONFIG, 2, @tmp)
+    curr_res &= core#MASK_SADC
+    curr_res := (curr_res | adc_res) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @curr_res)
 
-PUB ShuntSamples(samples) | tmp
+PUB ShuntSamples(samples): curr_smp
 ' Set number of shunt ADC samples to take when averaging
 '   Valid values: 1, 2, 4, 8, 16, 32, 64, 128
 '   Any other value polls the chip and returns the current setting
 '   NOTE: All averaging modes are performed at 12-bit resolution
 '   NOTE: Conversion time is approx 532uSec * number of samples
 '   NOTE: 1 effectively disables averaging
-    tmp := $0000
-    readReg(core#CONFIG, 2, @tmp)
+    curr_smp := 0
+    readreg(core#CONFIG, 2, @curr_smp)
     case samples
         1, 2, 4, 8, 16, 32, 64, 128:
-            samples := (1 << core#FLD_SADC_AVG) | (lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#FLD_SADC)
-        OTHER:
-            tmp := (tmp >> core#FLD_SADC) & core#BITS_SADC
-            if tmp & %1000
-                tmp &= %0111
-                return lookupz(tmp: 1, 2, 4, 8, 16, 32, 64, 128)
+            samples := (1 << core#FLD_SADC_AVG)
+            samples |= lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#FLD_SADC
+        other:
+            curr_smp := (curr_smp >> core#FLD_SADC) & core#BITS_SADC
+            if curr_smp & %1000
+                curr_smp &= %0111
+                return lookupz(curr_smp: 1, 2, 4, 8, 16, 32, 64, 128)
             else
                 return 0
 
-    tmp &= core#MASK_SADC
-    tmp := (tmp | samples) & core#CONFIG_MASK
-    writeReg(core#CONFIG, 2, @tmp)
+    curr_smp &= core#MASK_SADC
+    curr_smp := (curr_smp | samples) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @curr_smp)
 
-PUB ShuntVoltage
+PUB ShuntVoltage{}: v
 ' Read shunt voltage
 '   Returns: Voltage in millivolts
-    readReg(core#SHUNT_VOLTAGE, 2, @result)
-    ~~result
-    return result * 10
+    readreg(core#SHUNT_VOLTAGE, 2, @v)
+    return ~~v * 10
 
-PUB ShuntVoltageRange(mV) | tmp
+PUB ShuntVoltageRange(range): curr_rng
 ' Set shunt voltage range, in millivolts
 '   Valid values: 40, 80, 160, 320
 '   Any other value polls the chip and returns the current setting
 '   Example: Setting of 40 means +/- 40mV
-    tmp := $0000
-    readReg(core#CONFIG, 2, @tmp)
-    case mV
+    curr_rng := 0
+    readreg(core#CONFIG, 2, @curr_rng)
+    case range
         40, 80, 160, 320:
-            mV := lookdownz(mV: 40, 80, 160, 320) << core#FLD_PG
-        OTHER:
-            tmp := (tmp >> core#FLD_PG) & core#BITS_PG
-            result := lookupz(tmp: 40, 80, 160, 320)
-            return
+            range := lookdownz(range: 40, 80, 160, 320) << core#FLD_PG
+        other:
+            curr_rng := (curr_rng >> core#FLD_PG) & core#BITS_PG
+            return lookupz(curr_rng: 40, 80, 160, 320)
 
-    tmp &= core#MASK_PG
-    tmp := (tmp | mV) & core#CONFIG_MASK
-    writeReg(core#CONFIG, 2, @tmp)
+    curr_rng &= core#MASK_PG
+    curr_rng := (curr_rng | range) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @curr_rng)
 
-PRI readReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
-'' Read num_bytes from the slave device into the address stored in buff_addr
-    case reg                                                    'Basic register validation
+PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+' read nr_bytes from device into ptr_buff
+    case reg_nr                                    ' validate register
         $00..$05:
-            cmd_packet.byte[0] := SLAVE_WR
-            cmd_packet.byte[1] := reg
-            i2c.start
-            i2c.wr_block (@cmd_packet, 2)
-            i2c.start
-            i2c.write (SLAVE_RD)
-            byte[buff_addr][1] := i2c.Read (i2c#ACK)
-            byte[buff_addr][0] := i2c.Read (i2c#NAK)
-            i2c.stop
-        OTHER:
+            cmd_pkt.byte[0] := SLAVE_WR
+            cmd_pkt.byte[1] := reg_nr
+            i2c.start{}
+            i2c.wr_block(@cmd_pkt, 2)
+            i2c.start{}
+            i2c.write(SLAVE_RD)
+            byte[ptr_buff][1] := i2c.read(i2c#ACK)
+            byte[ptr_buff][0] := i2c.read(i2c#NAK)
+            i2c.stop{}
+        other:
             return
 
-PRI writeReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
-'' Write num_bytes to the slave device from the address stored in buff_addr
-    case reg                                                    'Basic register validation
+PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+' write nr_bytes to device from ptr_buff
+    case reg_nr
         $00, $05:
-            cmd_packet.byte[0] := SLAVE_WR
-            cmd_packet.byte[1] := reg
-            cmd_packet.byte[2] := byte[buff_addr][1]
-            cmd_packet.byte[3] := byte[buff_addr][0]
+            cmd_pkt.byte[0] := SLAVE_WR
+            cmd_pkt.byte[1] := reg_nr
+            cmd_pkt.byte[2] := byte[ptr_buff][1]
+            cmd_pkt.byte[3] := byte[ptr_buff][0]
 
-            i2c.start
-            i2c.wr_block (@cmd_packet, 4)
-            i2c.stop
-        OTHER:
+            i2c.start{}
+            i2c.wr_block(@cmd_pkt, 4)
+            i2c.stop{}
+        other:
             return
 
 
