@@ -1,23 +1,22 @@
 {
     --------------------------------------------
-    Filename: INA219-Demo.spin2
+    Filename: INA219-Demo.spin
     Author: Jesse Burt
     Description: Demo of the INA219 driver
-        (P2 version)
     Copyright (c) 2020
     Started Sep 18, 2019
-    Updated Dec 2, 2020
+    Updated Dec 3, 2020
     See end of file for terms of use.
     --------------------------------------------
 }
 
 CON
 
-    _clkfreq        = cfg#_clkfreq_def
-    _xtlfreq        = cfg#_xtlfreq
+    _clkfreq        = cfg._clkfreq_def
+    _xtlfreq        = cfg._xtlfreq
 
 ' -- User-modifiable constants
-    LED             = cfg#LED1
+    LED             = cfg.LED1
     SER_BAUD        = 2_000_000
 
     SCL_PIN         = 14
@@ -25,10 +24,10 @@ CON
     I2C_HZ          = 400_000
 ' --
 
-    MEASUREMENT_COL = 0
-    CURR_MEAS_COL   = 20
-    MIN_MEAS_COL    = CURR_MEAS_COL + 20
-    MAX_MEAS_COL    = MIN_MEAS_COL + 20
+    VBUS_COL        = 0
+    VSHUNT_COL      = VBUS_COL+15
+    I_COL           = VSHUNT_COL+15
+    P_COL           = I_COL+15
 
 OBJ
 
@@ -37,98 +36,72 @@ OBJ
     ina219  : "sensor.power.ina219.i2c"
     int     : "string.integer"
 
-VAR
-
-    byte _row
-
-PUB Main() | vbus, vbus_min, vbus_max, vshunt, vshunt_min, vshunt_max, i, i_min, i_max, p, p_min, p_max, cnf, cnf_init
+PUB Main() | vbus, vshunt, i, p
 
     setup()
-    ina219.calibration(20480)
-    ina219.busvoltagerange(32)
-    ina219.shuntvoltagerange(320)
-    ina219.shuntadcres(12)
-'    ina219.shuntsamples(128)
-    ina219.busadcres(12)
+    ina219.calibration(20480)                   ' 0..65535
+                                                ' (>0 for current readings)
+    ina219.busvoltagerange(16)                  ' 16, 32 (V)
+    ina219.shuntvoltagerange(320)               ' 40, 80, 160, 320 (mV)
+    ina219.shuntadcres(12)                      ' 9..12 (bits)
+    ina219.shuntsamples(1)                      ' 1..128 (samples, powers of 2)
+    ina219.busadcres(12)                        ' 9..12 (bits)
 
-    cnf_init := ina219.configword()
-    _row := 5
-    ser.position(MEASUREMENT_COL, _row)
-    ser.printf("Measurement:")
-    ser.position(CURR_MEAS_COL, _row)
-    ser.printf("Current val:")
-    ser.position(MIN_MEAS_COL, _row)
-    ser.printf("Min:")
-    ser.position(MAX_MEAS_COL, _row)
-    ser.printf("Max:")
-
-    _row += 2
-    vbus_min := ina219.busvoltage()
-    vshunt_min := ina219.shuntvoltage()
-    i_min := ina219.current()
-    p_min := ina219.power()
+    ser.position(VBUS_COL, 3)
+    ser.str(string("Bus voltage"))
+    ser.position(VSHUNT_COL, 3)
+    ser.str(string("Shunt voltage"))
+    ser.position(I_COL, 3)
+    ser.str(string("Current"))
+    ser.position(P_COL, 3)
+    ser.str(string("Power"))
 
     repeat
-        _row := 7
         vbus := ina219.busvoltage()
         vshunt := ina219.shuntvoltage()
         i := ina219.current()
         p := ina219.power()
-        cnf := ina219.configword()
 
-        vbus_min := vbus <# vbus_min
-        vbus_max := vbus #> vbus_max
-        vshunt_min := vshunt_min <# vshunt
-        vshunt_max := vshunt #> vshunt_max
-        i_min := i_min <# i
-        i_max := i #> i_max
-        p_min := p_min <# p
-        p_max := p #> p_max
+        ser.position(VBUS_COL, 5)
+        decimal(vbus, 1000)
+        ser.str(string("V"))
 
-        ser.position(MEASUREMENT_COL, _row)
-        ser.str(string("Bus voltage"))
-        ser.position(CURR_MEAS_COL+3, _row)
-        ser.str(int.decpadded(vbus, 7))
-        ser.str(string("mV"))
-        ser.position(MIN_MEAS_COL-3, _row)
-        ser.str(int.decpadded(vbus_min, 7))
-        ser.position(MAX_MEAS_COL-3, _row)
-        ser.str(int.decpadded(vbus_max, 7))
+        ser.position(VSHUNT_COL, 5)
+        decimal(vshunt, 1_000_000)
+        ser.str(string("V"))
 
-        _row++
-        ser.position(MEASUREMENT_COL, _row)
-        ser.str(string("Shunt voltage"))
-        ser.position(CURR_MEAS_COL+3, _row)
-        ser.str(int.decpadded(vshunt, 7))
-        ser.str(string("uV"))
-        ser.position(MIN_MEAS_COL-3, _row)
-        ser.str(int.decpadded(vshunt_min, 7))
-        ser.position(MAX_MEAS_COL-3, _row)
-        ser.str(int.decpadded(vshunt_max, 7))
+        ser.position(I_COL, 5)
+        decimal(i, 1_000)
+        ser.str(string("mA"))
 
-        _row++
-        ser.position(MEASUREMENT_COL, _row)
-        ser.str(string("Current"))
-        ser.position(CURR_MEAS_COL+3, _row)
-        ser.str(int.decpadded(i, 7))
-        ser.str(string("uA"))
-        ser.position(MIN_MEAS_COL-3, _row)
-        ser.str(int.decpadded(i_min, 7))
-        ser.position(MAX_MEAS_COL-3, _row)
-        ser.str(int.decpadded(i_max, 7))
+        ser.position(P_COL, 5)
+        decimal(p, 1_000_000)
+        ser.str(string("mW"))
 
-        _row++
-        ser.position(MEASUREMENT_COL, _row)
-        ser.str(string("Power"))
-        ser.position(CURR_MEAS_COL+3, _row)
-        ser.str(int.decpadded(p, 7))
-        ser.str(string("uW"))
-        ser.position(MIN_MEAS_COL-3, _row)
-        ser.str(int.decpadded(p_min, 7))
-        ser.position(MAX_MEAS_COL-3, _row)
-        ser.str(int.decpadded(p_max, 7))
+PRI Decimal(scaled, divisor) | whole[4], part[4], places, tmp, sign
+' Display a scaled up number as a decimal
+'   Scale it back down by divisor (e.g., 10, 100, 1000, etc)
+    whole := scaled / divisor
+    tmp := divisor
+    places := 0
+    part := 0
+    sign := 0
+    if scaled < 0
+        sign := "-"
+    else
+        sign := " "
 
-        waitms(10)
+    repeat
+        tmp /= 10
+        places++
+    until tmp == 1
+    scaled //= divisor
+    part := int.deczeroed(abs(scaled), places)
+
+    ser.char(sign)
+    ser.dec(abs(whole))
+    ser.char(".")
+    ser.str(part)
 
 PUB Setup()
 
