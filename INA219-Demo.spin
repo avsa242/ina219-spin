@@ -40,7 +40,7 @@ OBJ
 PUB Main{} | vbus, vshunt, i, p
 
     setup{}
-    ina219.calibration(20480)                   ' 0..65535
+    ina219.currentbias(20480)                   ' 0..65535
                                                 ' (>0 for current readings)
     ina219.busvoltagerange(16)                  ' 16, 32 (V)
     ina219.shuntvoltagerange(320)               ' 40, 80, 160, 320 (mV)

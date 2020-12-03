@@ -20,9 +20,6 @@ CON
     DEF_HZ            = 100_000
     I2C_MAX_FREQ      = core#I2C_MAX_FREQ
 
-VAR
-
-
 OBJ
 
     i2c : "com.i2c"
@@ -96,7 +93,7 @@ PUB BusVoltageRange(range): curr_rng
     curr_rng := (curr_rng | range) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @curr_rng)
 
-PUB Calibration(val): curr_val
+PUB CurrentBias(val): curr_val
 ' Set calibration value, used in current calculation
 '   Valid values: *0..65535
 '   Any other value polls the chip and returns the current setting
@@ -111,10 +108,6 @@ PUB Calibration(val): curr_val
             readreg(core#CALIBRATION, 2, @curr_val)
             return
 
-PUB ConfigWord{}: cfg_word
-' debug: return value of config register
-    readreg(core#CONFIG, 2, @cfg_word)
-
 PUB Current{}: a
 ' Read current flowing through shunt resistor
 '   Returns: Current in microamps
@@ -123,10 +116,10 @@ PUB Current{}: a
     return (~~a * 20)
 
 PUB DeviceID{}: id
-' Identify the device
+' Read device ID
 '   Returns: POR value of the configuration register
-'   NOTE: This method performs a soft-reset of the chip and reads the value of the configuration register,
-'       thus it isn't an ID, per se
+'   NOTE: This method performs a soft-reset of the chip and reads the value of
+'       the configuration register, thus it isn't an ID, per se
     id := 0
     reset{}
     readreg(core#CONFIG, 2, @id)
@@ -193,7 +186,7 @@ PUB ShuntVoltage{}: v
 
 PUB ShuntVoltageRange(range): curr_rng
 ' Set shunt voltage range, in millivolts
-'   Valid values: 40, 80, 160, 320
+'   Valid values: 40, 80, 160, *320
 '   Any other value polls the chip and returns the current setting
 '   Example: Setting of 40 means +/- 40mV
     curr_rng := 0
