@@ -12,7 +12,7 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the TI INA2
 * Read bus voltage
 * Read power measured by the chip
 * Read current measured by the chip
-* Set a calibration value
+* Set current reading calibration
 
 ## Requirements
 
@@ -26,7 +26,7 @@ P2/SPIN2:
 ## Compiler Compatibility
 
 * P1/SPIN1: OpenSpin (tested with 1.00.81)
-* P2/SPIN2: FastSpin (tested with 4.1.10-beta)
+* P2/SPIN2: FastSpin (tested with 5.0.0)
 * ~~BST~~ (incompatible - no preprocessor)
 * ~~Propeller Tool~~ (incompatible - no preprocessor)
 * ~~PNut~~ (incompatible - no preprocessor)
@@ -46,3 +46,4 @@ P2/SPIN2:
 - [x] Implement method to read measured current
 - [x] Implement method to set/read calibration
 - [ ] Make calibration a more dynamic process
+- [ ] Add support for alternate slave addresses

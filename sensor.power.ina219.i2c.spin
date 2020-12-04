@@ -5,7 +5,7 @@
     Description: Driver of the TI INA219 current/power monitor IC
     Copyright (c) 2020
     Started Sep 18, 2019
-    Updated Dec 2, 2020
+    Updated Dec 4, 2020
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -180,7 +180,7 @@ PUB ShuntSamples(samples): curr_smp
 
 PUB ShuntVoltage{}: v
 ' Read shunt voltage
-'   Returns: Voltage in millivolts
+'   Returns: Voltage in microvolts
     readreg(core#SHUNT_VOLTAGE, 2, @v)
     return ~~v * 10
 

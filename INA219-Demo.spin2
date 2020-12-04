@@ -76,7 +76,7 @@ PUB Main() | vbus, vshunt, i, p
 
         ser.position(P_COL, 5)
         decimal(p, 1_000_000)
-        ser.str(string("mW"))
+        ser.str(string("W"))
 
 PRI Decimal(scaled, divisor) | whole[4], part[4], places, tmp, sign
 ' Display a scaled up number as a decimal
