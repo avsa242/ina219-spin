@@ -190,7 +190,7 @@ PUB ShuntVoltageRange(range=-2): curr_rng
             return lookupz(curr_rng: 40, 80, 160, 320)
 
     range := ((curr_rng & core#PG_MASK) | range) & core#CONFIG_MASK
-PUB writereg(core.CONFIG, 2, @range)
+    writereg(core.CONFIG, 2, @range)
 
 PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' read nr_bytes from device into ptr_buff

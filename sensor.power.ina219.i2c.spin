@@ -197,7 +197,7 @@ PUB ShuntVoltageRange(range): curr_rng
     range := ((curr_rng & core#PG_MASK) | range) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @range)
 
-PUB readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' read nr_bytes from device into ptr_buff
     case reg_nr                                    ' validate register
         core#CONFIG..core#CALIBRATION:
