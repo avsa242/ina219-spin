@@ -5,7 +5,7 @@
     Description: Low-level constants
     Copyright (c) 2020
     Started Sep 18, 2019
-    Updated Jul 22, 2020
+    Updated Dec 5, 2020
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -15,33 +15,32 @@ CON
     I2C_MAX_FREQ        = 2_560_000
     SLAVE_ADDR          = $40 << 1
 
-'' Register definitions
-
+' Register definitions
     CONFIG              = $00   'RW
     CONFIG_MASK         = $BFFF
     CONFIG_POR          = $399F 'POR value, used to ID the chip
-        FLD_RST         = 15
-        FLD_BRNG        = 13
-        FLD_PG          = 11
-        FLD_BADC        = 7
-        FLD_SADC_AVG    = 6
-        FLD_SADC        = 3
-        FLD_MODE        = 0
-        BITS_PG         = %11
-        BITS_BADC       = %1111
-        BITS_SADC       = %1111
-        MASK_BRNG       = CONFIG_MASK ^ (1 << FLD_BRNG)
-        MASK_PG         = CONFIG_MASK ^ (BITS_PG << FLD_PG)
-        MASK_BADC       = CONFIG_MASK ^ (BITS_BADC << FLD_BADC)
-        MASK_SADC       = CONFIG_MASK ^ (BITS_SADC << FLD_SADC)
+        RST             = 15
+        BRNG            = 13
+        PG              = 11
+        BADC            = 7
+        SADC_AVG        = 6
+        SADC            = 3
+        MODE            = 0
+        PG_BITS         = %11
+        BADC_BITS       = %1111
+        SADC_BITS       = %1111
+        BRNG_MASK       = (1 << BRNG) ^ CONFIG_MASK
+        PG_MASK         = (PG_BITS << PG) ^ CONFIG_MASK
+        BADC_MASK       = (BADC_BITS << BADC) ^ CONFIG_MASK
+        SADC_MASK       = SADC_BITS ^ CONFIG_MASK
 
     SHUNT_VOLTAGE       = $01   'RO
 
     BUS_VOLTAGE         = $02
     BUS_VOLTAGE_MASK    = $FFFB
-    FLD_BD              = 3
-    FLD_CNVR            = 1
-    FLD_OVF             = 0
+        BD              = 3
+        CNVR            = 1
+        OVF             = 0
 
     POWER               = $03
 
@@ -52,7 +51,7 @@ CON
 
 #ifndef __propeller2__
 PUB Null
-'' This is not a top-level object
+' This is not a top-level object
 #endif
 
 {

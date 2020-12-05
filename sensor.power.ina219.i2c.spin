@@ -5,7 +5,7 @@
     Description: Driver of the TI INA219 current/power monitor IC
     Copyright (c) 2020
     Started Sep 18, 2019
-    Updated Dec 4, 2020
+    Updated Dec 5, 2020
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -67,12 +67,12 @@ PUB BusADCRes(adcres): curr_res
     readreg(core#CONFIG, 2, @curr_res)
     case adcres
         9, 10, 11, 12:
-            adcres := lookdownz(adcres: 9, 10, 11, 12) << core#FLD_BADC
+            adcres := lookdownz(adcres: 9, 10, 11, 12) << core#BADC
         other:
-            curr_res := (curr_res >> core#FLD_BADC) & core#BITS_BADC
+            curr_res := (curr_res >> core#BADC) & core#BADC_BITS
             return lookupz(curr_res: 9, 10, 11, 12)
 
-    curr_res &= core#MASK_BADC
+    curr_res &= core#BADC_MASK
     curr_res := (curr_res | adcres) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @curr_res)
 
@@ -84,12 +84,12 @@ PUB BusVoltageRange(range): curr_rng
     readreg(core#CONFIG, 2, @curr_rng)
     case range
         16, 32:
-            range := lookdownz(range: 16, 32) << core#FLD_BRNG
+            range := lookdownz(range: 16, 32) << core#BRNG
         other:
-            curr_rng := (curr_rng >> core#FLD_BRNG) & %1
+            curr_rng := (curr_rng >> core#BRNG) & %1
             return lookupz(curr_rng: 16, 32)
 
-    curr_rng &= core#MASK_BRNG
+    curr_rng &= core#BRNG_MASK
     curr_rng := (curr_rng | range) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @curr_rng)
 
@@ -133,7 +133,7 @@ PUB Power{}: w
 
 PUB Reset{} | tmp
 ' Perform a soft-reset of the chip
-    tmp := (1 << core#FLD_RST)
+    tmp := (1 << core#RST)
     writereg(core#CONFIG, 2, @tmp)
 
 PUB ShuntADCRes(adc_res): curr_res
@@ -144,12 +144,12 @@ PUB ShuntADCRes(adc_res): curr_res
     readreg(core#CONFIG, 2, @curr_res)
     case adc_res
         9, 10, 11, 12:
-            adc_res := lookdownz(adc_res: 9, 10, 11, 12) << core#FLD_SADC
+            adc_res := lookdownz(adc_res: 9, 10, 11, 12) << core#SADC
         other:
-            curr_res := (curr_res >> core#FLD_SADC) & core#BITS_SADC
+            curr_res := (curr_res >> core#SADC) & core#SADC_BITS
             return lookupz(curr_res: 9, 10, 11, 12)
 
-    curr_res &= core#MASK_SADC
+    curr_res &= core#SADC_MASK
     curr_res := (curr_res | adc_res) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @curr_res)
 
@@ -164,17 +164,17 @@ PUB ShuntSamples(samples): curr_smp
     readreg(core#CONFIG, 2, @curr_smp)
     case samples
         1, 2, 4, 8, 16, 32, 64, 128:
-            samples := (1 << core#FLD_SADC_AVG)
-            samples |= lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#FLD_SADC
+            samples := (1 << core#SADC_AVG)
+            samples |= lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#SADC
         other:
-            curr_smp := (curr_smp >> core#FLD_SADC) & core#BITS_SADC
+            curr_smp := (curr_smp >> core#SADC) & core#SADC_BITS
             if curr_smp & %1000
                 curr_smp &= %0111
                 return lookupz(curr_smp: 1, 2, 4, 8, 16, 32, 64, 128)
             else
                 return 0
 
-    curr_smp &= core#MASK_SADC
+    curr_smp &= core#SADC_MASK
     curr_smp := (curr_smp | samples) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @curr_smp)
 
@@ -193,12 +193,12 @@ PUB ShuntVoltageRange(range): curr_rng
     readreg(core#CONFIG, 2, @curr_rng)
     case range
         40, 80, 160, 320:
-            range := lookdownz(range: 40, 80, 160, 320) << core#FLD_PG
+            range := lookdownz(range: 40, 80, 160, 320) << core#PG
         other:
-            curr_rng := (curr_rng >> core#FLD_PG) & core#BITS_PG
+            curr_rng := (curr_rng >> core#PG) & core#PG_BITS
             return lookupz(curr_rng: 40, 80, 160, 320)
 
-    curr_rng &= core#MASK_PG
+    curr_rng &= core#PG_MASK
     curr_rng := (curr_rng | range) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @curr_rng)
 
