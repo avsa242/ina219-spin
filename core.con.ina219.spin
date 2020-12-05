@@ -32,7 +32,7 @@ CON
         BRNG_MASK       = (1 << BRNG) ^ CONFIG_MASK
         PG_MASK         = (PG_BITS << PG) ^ CONFIG_MASK
         BADC_MASK       = (BADC_BITS << BADC) ^ CONFIG_MASK
-        SADC_MASK       = SADC_BITS ^ CONFIG_MASK
+        SADC_MASK       = (SADC_BITS << SADC) ^ CONFIG_MASK
 
     SHUNT_VOLTAGE       = $01   'RO
 

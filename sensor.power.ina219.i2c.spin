@@ -72,9 +72,8 @@ PUB BusADCRes(adcres): curr_res
             curr_res := (curr_res >> core#BADC) & core#BADC_BITS
             return lookupz(curr_res: 9, 10, 11, 12)
 
-    curr_res &= core#BADC_MASK
-    curr_res := (curr_res | adcres) & core#CONFIG_MASK
-    writereg(core#CONFIG, 2, @curr_res)
+    adcres := ((curr_res & core#BADC_MASK) | adcres) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @adcres)
 
 PUB BusVoltageRange(range): curr_rng
 ' Set bus voltage range
@@ -89,9 +88,8 @@ PUB BusVoltageRange(range): curr_rng
             curr_rng := (curr_rng >> core#BRNG) & %1
             return lookupz(curr_rng: 16, 32)
 
-    curr_rng &= core#BRNG_MASK
-    curr_rng := (curr_rng | range) & core#CONFIG_MASK
-    writereg(core#CONFIG, 2, @curr_rng)
+    range := ((curr_rng & core#BRNG_MASK) | range) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @range)
 
 PUB CurrentBias(val): curr_val
 ' Set calibration value, used in current calculation
@@ -149,9 +147,8 @@ PUB ShuntADCRes(adc_res): curr_res
             curr_res := (curr_res >> core#SADC) & core#SADC_BITS
             return lookupz(curr_res: 9, 10, 11, 12)
 
-    curr_res &= core#SADC_MASK
-    curr_res := (curr_res | adc_res) & core#CONFIG_MASK
-    writereg(core#CONFIG, 2, @curr_res)
+    adc_res := ((curr_res & core#SADC_MASK) | adc_res) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @adc_res)
 
 PUB ShuntSamples(samples): curr_smp
 ' Set number of shunt ADC samples to take when averaging
@@ -164,8 +161,8 @@ PUB ShuntSamples(samples): curr_smp
     readreg(core#CONFIG, 2, @curr_smp)
     case samples
         1, 2, 4, 8, 16, 32, 64, 128:
-            samples := (1 << core#SADC_AVG)
-            samples |= lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#SADC
+            samples := lookdownz(samples: 1, 2, 4, 8, 16, 32, 64, 128) << core#SADC
+            samples |= (1 << core#SADC_AVG)
         other:
             curr_smp := (curr_smp >> core#SADC) & core#SADC_BITS
             if curr_smp & %1000
@@ -174,9 +171,8 @@ PUB ShuntSamples(samples): curr_smp
             else
                 return 0
 
-    curr_smp &= core#SADC_MASK
-    curr_smp := (curr_smp | samples) & core#CONFIG_MASK
-    writereg(core#CONFIG, 2, @curr_smp)
+    samples := ((curr_smp & core#SADC_MASK) | samples) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @samples)
 
 PUB ShuntVoltage{}: v
 ' Read shunt voltage
@@ -198,14 +194,13 @@ PUB ShuntVoltageRange(range): curr_rng
             curr_rng := (curr_rng >> core#PG) & core#PG_BITS
             return lookupz(curr_rng: 40, 80, 160, 320)
 
-    curr_rng &= core#PG_MASK
-    curr_rng := (curr_rng | range) & core#CONFIG_MASK
-    writereg(core#CONFIG, 2, @curr_rng)
+    range := ((curr_rng & core#PG_MASK) | range) & core#CONFIG_MASK
+    writereg(core#CONFIG, 2, @range)
 
-PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PUB readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' read nr_bytes from device into ptr_buff
     case reg_nr                                    ' validate register
-        $00..$05:
+        core#CONFIG..core#CALIBRATION:
             cmd_pkt.byte[0] := SLAVE_WR
             cmd_pkt.byte[1] := reg_nr
             i2c.start{}
@@ -221,7 +216,7 @@ PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' write nr_bytes to device from ptr_buff
     case reg_nr
-        $00, $05:
+        core#CONFIG, core#CALIBRATION:
             cmd_pkt.byte[0] := SLAVE_WR
             cmd_pkt.byte[1] := reg_nr
             cmd_pkt.byte[2] := byte[ptr_buff][1]
