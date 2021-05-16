@@ -24,7 +24,7 @@ CON
 OBJ
 
     i2c : "com.i2c"
-    core: "core.con.ina219.spin"
+    core: "core.con.ina219"
 
 VAR
 
@@ -36,21 +36,23 @@ VAR
 PUB Null()
 ' This is not a top-level object
 
-PUB Start(SCL_PIN, SDA_PIN, I2C_HZ=100_000): okay
+PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ=100_000): status
 ' Start using custom settings
-    if lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63)
-        if I2C_HZ <= core.I2C_MAX_FREQ
-            if okay := i2c.setup(SCL_PIN, SDA_PIN, I2C_HZ)
-                waitms(1)
-                if i2c.present(SLAVE_WR)       ' check device bus presence
-                    if deviceid() == core.CONFIG_POR
-                        return okay
-
-    return FALSE                                ' something above failed
+    if lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) and {
+}   I2C_HZ <= core.I2C_MAX_FREQ
+        if (status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ))
+            waitms(1)
+            if i2c.present(SLAVE_WR)            ' check device bus presence
+                if deviceid() == core.CONFIG_POR
+                    return
+    ' if this point is reached, something above failed
+    ' Double check I/O pin assignments, connections, power
+    ' Lastly - make sure you have at least one free core/cog
+    return FALSE
 
 PUB Stop()
 
-'
+    i2c.deinit()
 
 PUB Preset320S_2A_100mohm()
 ' Preset:       'XXX for coming up with a value for CurrentBias()
@@ -131,7 +133,7 @@ PUB Current(): a
 ' Read current
 '   Returns: Current in milliamps
     readreg(core#CURRENT, 2, @a)
-    return ~~curr_adc
+    return ~~a
 
 PUB DeviceID(): id
 ' Read device ID
@@ -232,36 +234,32 @@ PUB ShuntVoltageRange(range=-2): curr_rng
 PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' read nr_bytes from device into ptr_buff
     case reg_nr                                    ' validate register
-        core#CONFIG..core#CALIBRATION:
+        core.CONFIG..core.CALIBRATION:
             cmd_pkt.byte[0] := SLAVE_WR
             cmd_pkt.byte[1] := reg_nr
-            i2c.start()
-            repeat tmp from 0 to 1
-                i2c.write(cmd_pkt.byte[tmp])
-            i2c.start()
+            i2c.start{}
+            i2c.wrblock_lsbf(@cmd_pkt, 2)
+            i2c.start{}
             i2c.write(SLAVE_RD)
-            byte[ptr_buff][1] := i2c.read(i2c.ACK)
-            byte[ptr_buff][0] := i2c.read(i2c.NAK)
-            i2c.stop()
+            i2c.rdblock_msbf(ptr_buff, 2, i2c.NAK)
+            i2c.stop{}
         other:
             return
 
 PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' write nr_bytes to device from ptr_buff
     case reg_nr
-        core#CONFIG, core#CALIBRATION:
+        core.CONFIG, core.CALIBRATION:
             cmd_pkt.byte[0] := SLAVE_WR
             cmd_pkt.byte[1] := reg_nr
             cmd_pkt.byte[2] := byte[ptr_buff][1]
             cmd_pkt.byte[3] := byte[ptr_buff][0]
 
-            i2c.start()
-            repeat tmp from 0 to 3
-                i2c.write(cmd_pkt.byte[tmp])
-            i2c.stop()
+            i2c.start{}
+            i2c.wrblock_lsbf(@cmd_pkt, 4)
+            i2c.stop{}
         other:
             return
-
 
 DAT
 {

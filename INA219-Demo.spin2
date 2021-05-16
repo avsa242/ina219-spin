@@ -3,9 +3,9 @@
     Filename: INA219-Demo.spin
     Author: Jesse Burt
     Description: Demo of the INA219 driver
-    Copyright (c) 2020
+    Copyright (c) 2021
     Started Sep 18, 2019
-    Updated Dec 3, 2020
+    Updated May 16, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -19,8 +19,8 @@ CON
     LED             = cfg.LED1
     SER_BAUD        = 2_000_000
 
-    SCL_PIN         = 14
-    SDA_PIN         = 15
+    SCL_PIN         = 0
+    SDA_PIN         = 1
     I2C_HZ          = 400_000
 ' --
 
@@ -39,13 +39,11 @@ OBJ
 PUB Main() | vbus, vshunt, i, p
 
     setup()
-    ina219.currentbias(20480)                   ' 0..65535
+
+    ina219.preset320s_2a_100mohm{}
+
+    ina219.currentbias(4096)                    ' 0..65535
                                                 ' (>0 for current readings)
-    ina219.busvoltagerange(16)                  ' 16, 32 (V)
-    ina219.shuntvoltagerange(320)               ' 40, 80, 160, 320 (mV)
-    ina219.shuntadcres(12)                      ' 9..12 (bits)
-    ina219.shuntsamples(1)                      ' 1..128 (samples, powers of 2)
-    ina219.busadcres(12)                        ' 9..12 (bits)
 
     ser.position(VBUS_COL, 3)
     ser.str(string("Bus voltage"))
@@ -57,26 +55,26 @@ PUB Main() | vbus, vshunt, i, p
     ser.str(string("Power"))
 
     repeat
-        vbus := ina219.busvoltage()
-        vshunt := ina219.shuntvoltage()
-        i := ina219.current()
-        p := ina219.power()
+        vbus := ina219.busvoltage{}
+        vshunt := ina219.shuntvoltage{}
+        i := ina219.current{}
+        p := ina219.power{}
 
         ser.position(VBUS_COL, 5)
         decimal(vbus, 1000)
-        ser.str(string("V"))
+        ser.str(string("V  "))
 
         ser.position(VSHUNT_COL, 5)
         decimal(vshunt, 1_000_000)
-        ser.str(string("V"))
+        ser.str(string("V  "))
 
         ser.position(I_COL, 5)
-        decimal(i, 1_000)
-        ser.str(string("mA"))
+        decimal(i, 10)
+        ser.str(string("mA  "))
 
         ser.position(P_COL, 5)
-        decimal(p, 1_000_000)
-        ser.str(string("W"))
+        decimal(p, 1000)
+        ser.str(string("W  "))
 
 PRI Decimal(scaled, divisor) | whole[4], part[4], places, tmp, sign
 ' Display a scaled up number as a decimal
@@ -109,7 +107,7 @@ PUB Setup()
     waitms(30)
     ser.clear()
     ser.strln(string("Serial terminal started"))
-    if ina219.start(SCL_PIN, SDA_PIN, I2C_HZ)
+    if ina219.startx(SCL_PIN, SDA_PIN, I2C_HZ)
         ser.strln(string("INA219 driver started"))
     else
         ser.strln(string("INA219 driver failed to start - halting"))

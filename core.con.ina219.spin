@@ -3,9 +3,9 @@
     Filename: core.con.ina219.spin
     Author: Jesse Burt
     Description: Low-level constants
-    Copyright (c) 2020
+    Copyright (c) 2021
     Started Sep 18, 2019
-    Updated Dec 5, 2020
+    Updated May 16, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -14,6 +14,8 @@ CON
 
     I2C_MAX_FREQ        = 2_560_000
     SLAVE_ADDR          = $40 << 1
+
+    T_POR               = 1_000                 ' usec
 
 ' Register definitions
     CONFIG              = $00   'RW
@@ -49,10 +51,8 @@ CON
     CALIBRATION         = $05
     CALIBRATION_MASK    = $FFFE 'bit 0 is RO
 
-#ifndef __propeller2__
-PUB Null
+PUB Null{}
 ' This is not a top-level object
-#endif
 
 {
     --------------------------------------------------------------------------------------------------------

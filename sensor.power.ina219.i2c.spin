@@ -23,7 +23,7 @@ CON
 OBJ
 
     i2c : "com.i2c"
-    core: "core.con.ina219.spin"
+    core: "core.con.ina219"
     time: "time"
 
 VAR
@@ -36,26 +36,27 @@ VAR
 PUB Null{}
 ' This is not a top-level object
 
-PUB Start{}: okay
+PUB Start{}: status
 ' Start using "standard" Propeller I2C pins and 100kHz
+    return startx(DEF_SCL, DEF_SDA, DEF_HZ)
 
-    okay := startx(DEF_SCL, DEF_SDA, DEF_HZ)
-
-PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
+PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): status
 ' Start using custom settings
-    if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31)
-        if I2C_HZ =< core#I2C_MAX_FREQ
-            if okay := i2c.setupx (SCL_PIN, SDA_PIN, I2C_HZ)
-                time.msleep(1)
-                if i2c.present (SLAVE_WR)       ' check device bus presence
-                    if deviceid{} == core#CONFIG_POR
-                        return okay
-
-    return FALSE                                ' something above failed
+    if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31) and {
+}   I2C_HZ =< core#I2C_MAX_FREQ
+        if (status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ))
+            time.msleep(1)
+            if i2c.present (SLAVE_WR)           ' check device bus presence
+                if deviceid{} == core#CONFIG_POR
+                    return
+    ' if this point is reached, something above failed
+    ' Double check I/O pin assignments, connections, power
+    ' Lastly - make sure you have at least one free core/cog
+    return FALSE
 
 PUB Stop{}
 
-    i2c.terminate{}
+    i2c.deinit{}
 
 PUB Preset320S_2A_100mohm{}
 ' Preset:       'XXX for coming up with a value for CurrentBias()
@@ -136,7 +137,7 @@ PUB Current{}: a
 ' Read current
 '   Returns: Current in milliamps
     readreg(core#CURRENT, 2, @a)
-    return ~~curr_adc
+    return ~~a
 
 PUB DeviceID{}: id
 ' Read device ID
@@ -241,11 +242,10 @@ PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
             cmd_pkt.byte[0] := SLAVE_WR
             cmd_pkt.byte[1] := reg_nr
             i2c.start{}
-            i2c.wr_block(@cmd_pkt, 2)
+            i2c.wrblock_lsbf(@cmd_pkt, 2)
             i2c.start{}
             i2c.write(SLAVE_RD)
-            byte[ptr_buff][1] := i2c.read(i2c#ACK)
-            byte[ptr_buff][0] := i2c.read(i2c#NAK)
+            i2c.rdblock_msbf(ptr_buff, 2, i2c#NAK)
             i2c.stop{}
         other:
             return
@@ -260,7 +260,7 @@ PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
             cmd_pkt.byte[3] := byte[ptr_buff][0]
 
             i2c.start{}
-            i2c.wr_block(@cmd_pkt, 4)
+            i2c.wrblock_lsbf(@cmd_pkt, 4)
             i2c.stop{}
         other:
             return
