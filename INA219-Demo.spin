@@ -40,13 +40,11 @@ OBJ
 PUB Main{} | vbus, vshunt, i, p
 
     setup{}
-    ina219.currentbias(20480)                   ' 0..65535
+
+    ina219.preset320s_2a_100mohm{}
+
+    ina219.currentbias(4096)                    ' 0..65535
                                                 ' (>0 for current readings)
-    ina219.busvoltagerange(16)                  ' 16, 32 (V)
-    ina219.shuntvoltagerange(320)               ' 40, 80, 160, 320 (mV)
-    ina219.shuntadcres(12)                      ' 9..12 (bits)
-    ina219.shuntsamples(1)                      ' 1..128 (samples, powers of 2)
-    ina219.busadcres(12)                        ' 9..12 (bits)
 
     ser.position(VBUS_COL, 3)
     ser.str(string("Bus voltage"))
@@ -65,19 +63,19 @@ PUB Main{} | vbus, vshunt, i, p
 
         ser.position(VBUS_COL, 5)
         decimal(vbus, 1000)
-        ser.str(string("V"))
+        ser.str(string("V  "))
 
         ser.position(VSHUNT_COL, 5)
         decimal(vshunt, 1_000_000)
-        ser.str(string("V"))
+        ser.str(string("V  "))
 
         ser.position(I_COL, 5)
-        decimal(i, 1_000)
-        ser.str(string("mA"))
+        decimal(i, 10)
+        ser.str(string("mA  "))
 
         ser.position(P_COL, 5)
-        decimal(p, 1_000_000)
-        ser.str(string("W"))
+        decimal(p, 1000)
+        ser.str(string("W  "))
 
 PRI Decimal(scaled, divisor) | whole[4], part[4], places, tmp, sign
 ' Display a scaled up number as a decimal

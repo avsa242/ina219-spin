@@ -26,6 +26,13 @@ OBJ
     core: "core.con.ina219.spin"
     time: "time"
 
+VAR
+
+    long _shunt_res
+    long _i_max
+    long _i_lsb, _p_lsb
+    long _vmax_shunt
+
 PUB Null{}
 ' This is not a top-level object
 
@@ -49,6 +56,25 @@ PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
 PUB Stop{}
 
     i2c.terminate{}
+
+PUB Preset320S_2A_100mohm{}
+' Preset:       'XXX for coming up with a value for CurrentBias()
+'   32V bus voltage range
+'   320mV shunt voltage range
+'   12bit shunt ADC res
+'   2A maximum current
+'   100mOhm shunt resistor
+    shuntresistance(100)
+    _i_max := 2 * 1_000
+    _i_lsb := _i_max / 32768
+    _p_lsb := _i_lsb * 20
+    _vmax_shunt := _i_max * _shunt_res
+
+    busvoltagerange(32)
+    shuntvoltagerange(320)
+    shuntadcres(12)
+    shuntsamples(1)
+    busadcres(12)
 
 PUB BusVoltage{}: v
 ' Read bus voltage
@@ -93,12 +119,12 @@ PUB BusVoltageRange(range): curr_rng
 
 PUB CurrentBias(val): curr_val
 ' Set calibration value, used in current calculation
-'   Valid values: *0..65535
+'   Valid values: *0..65534 (even numbers only)
 '   Any other value polls the chip and returns the current setting
-'   NOTE: The LSB is read-only and is always 0
-'   NOTE: Current readings will always be 0 after POR, until this value is set
+'   NOTE: Current and power readings will always be 0,
+'       unless this value is set non-zero
     case val
-        0..65535:
+        0..65534:
             curr_val := val & core#CALIBRATION_MASK
             writereg(core#CALIBRATION, 2, @curr_val)
         other:
@@ -107,11 +133,10 @@ PUB CurrentBias(val): curr_val
             return
 
 PUB Current{}: a
-' Read current flowing through shunt resistor
-'   Returns: Current in microamps
+' Read current
+'   Returns: Current in milliamps
     readreg(core#CURRENT, 2, @a)
-'    result /= 5
-    return (~~a * 20)
+    return ~~curr_adc
 
 PUB DeviceID{}: id
 ' Read device ID
@@ -122,12 +147,16 @@ PUB DeviceID{}: id
     reset{}
     readreg(core#CONFIG, 2, @id)
 
+PUB PowerData{}: pwr_adc
+' Read power ADC data
+'   Returns: s16
+    pwr_adc := 0
+    readreg(core#POWER, 2, @pwr_adc)
+
 PUB Power{}: w
-' Read power (calculated on-chip)
-'   Returns: Power in microwatts
-    w := 0
-    readreg(core#POWER, 2, @w)
-    w *= 400
+' Read power
+'   Returns: Power in milliwatts
+    return powerdata{} * 2
 
 PUB Reset{} | tmp
 ' Perform a soft-reset of the chip
@@ -149,6 +178,14 @@ PUB ShuntADCRes(adc_res): curr_res
 
     adc_res := ((curr_res & core#SADC_MASK) | adc_res) & core#CONFIG_MASK
     writereg(core#CONFIG, 2, @adc_res)
+
+PUB ShuntResistance(r_shunt): curr_res
+' Set value of shunt resistor, in milliohms
+    case r_shunt
+        1..1_000:
+            _shunt_res := r_shunt
+        other:
+            return _shunt_res
 
 PUB ShuntSamples(samples): curr_smp
 ' Set number of shunt ADC samples to take when averaging
