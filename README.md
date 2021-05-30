@@ -7,7 +7,7 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the TI INA2
 
 ## Salient Features
 
-* I2C connection at up to 2.56MHz (P1), _TBD_ (P2)
+* I2C connection at up to 400kHz
 * Read shunt voltage
 * Read bus voltage
 * Read power measured by the chip
@@ -25,8 +25,8 @@ P2/SPIN2:
 
 ## Compiler Compatibility
 
-* P1/SPIN1: OpenSpin (tested with 1.00.81)
-* P2/SPIN2: FastSpin (tested with 5.0.0)
+* P1/SPIN1: OpenSpin (tested with 1.00.81), FlexSpin (tested with 5.5.0)
+* P2/SPIN2: FlexSpin (tested with 5.5.0)
 * ~~BST~~ (incompatible - no preprocessor)
 * ~~Propeller Tool~~ (incompatible - no preprocessor)
 * ~~PNut~~ (incompatible - no preprocessor)
@@ -35,6 +35,7 @@ P2/SPIN2:
 
 * Very early in development - may malfunction, or outright fail to build
 * Calibration values (factors used to compute calibrated figures from the raw ADC values; not the value set in the calibration register) are currently hardcoded
+* The driver accepts up to 2.56MHz bus speed, but this isn't supported yet
 
 ## TODO
 
@@ -46,4 +47,4 @@ P2/SPIN2:
 - [x] Implement method to read measured current
 - [x] Implement method to set/read calibration
 - [ ] Make calibration a more dynamic process
-- [ ] Add support for alternate slave addresses
+- [x] Add support for alternate slave addresses
