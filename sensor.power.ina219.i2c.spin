@@ -5,7 +5,7 @@
     Description: Driver of the TI INA219 current/power monitor IC
     Copyright (c) 2021
     Started Sep 18, 2019
-    Updated May 30, 2021
+    Updated Aug 20, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -80,6 +80,15 @@ PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
 PUB Stop{}
 
     i2c.deinit{}
+
+PUB Defaults{}
+' Factory default settings
+'   POR settings:
+'   BusVoltageRange(32)
+'   ShuntVoltageRange(320)
+'   BusADCRes(12)
+'   ShuntADCRes(12)
+    reset{}
 
 PUB Preset320S_2A_100mohm{}
 ' Preset:       'XXX for coming up with a value for CurrentBias()
@@ -191,6 +200,8 @@ PUB ShuntADCRes(adc_res): curr_res
 ' Set shunt ADC resolution, in bits
 '   Valid values: 9, 10, 11, *12
 '   Any other value polls the chip and returns the current setting
+'   NOTE: This setting and ShuntSamples() are mutually exclusive. If both
+'       methods are called, the most recent will be the setting used.
     curr_res := 0
     readreg(core#CONFIG, 2, @curr_res)
     case adc_res
@@ -218,6 +229,8 @@ PUB ShuntSamples(samples): curr_smp
 '   NOTE: All averaging modes are performed at 12-bit resolution
 '   NOTE: Conversion time is approx 532uSec * number of samples
 '   NOTE: 1 effectively disables averaging
+'   NOTE: This setting and ShuntADCRes() are mutually exclusive. If both
+'       methods are called, the most recent will be the setting used.
     curr_smp := 0
     readreg(core#CONFIG, 2, @curr_smp)
     case samples
@@ -226,7 +239,7 @@ PUB ShuntSamples(samples): curr_smp
             samples |= (1 << core#SADC_AVG)
         other:
             curr_smp := (curr_smp >> core#SADC) & core#SADC_BITS
-            if curr_smp & %1000
+            if curr_smp & %1000 ' XXX briefly explain this block
                 curr_smp &= %0111
                 return lookupz(curr_smp: 1, 2, 4, 8, 16, 32, 64, 128)
             else
