@@ -40,6 +40,16 @@ CON
 '   SCL SDA 100_1110
 '   SCL SCL 100_1111
 
+' Operating modes
+    SLEEP           = 0
+    SHUNTV_SNGL     = 1
+    BUSV_SNGL       = 2
+    BOTH_SNGL       = 3
+    STANDBY         = 4
+    SHUNTV_CONT     = 5
+    BUSV_CONT       = 6
+    BOTH_CONT       = 7
+
 OBJ
 
     i2c : "com.i2c"
@@ -64,13 +74,15 @@ PUB Start{}: status
 
 PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
 ' Start using custom settings
+    ' validate I/O pins, bus speed and I2C address option bits
     if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31) and {
 }   I2C_HZ =< core#I2C_MAX_FREQ and lookdown(ADDR_BITS: %0000..%1111)
         if (status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ))
             time.msleep(1)
             _addr_bits := ADDR_BITS << 1
-            if i2c.present(SLAVE_WR | _addr_bits) ' check device bus presence
-                if deviceid{} == core#CONFIG_POR
+            ' test device bus presence
+            if i2c.present(SLAVE_WR | _addr_bits)
+                if deviceid{} == core#DEVID_RESP
                     return
     ' if this point is reached, something above failed
     ' Double check I/O pin assignments, connections, power
@@ -88,6 +100,7 @@ PUB Defaults{}
 '   ShuntVoltageRange(320)
 '   BusADCRes(12)
 '   ShuntADCRes(12)
+'   OpMode(BOTH_CONT)
     reset{}
 
 PUB Preset320S_2A_100mohm{}
@@ -179,6 +192,29 @@ PUB DeviceID{}: id
     id := 0
     reset{}
     readreg(core#CONFIG, 2, @id)
+
+PUB OpMode(mode): curr_mode
+' Set device operating mode
+'   Valid values:
+'       SLEEP (0): Power-down
+'       SHUNTV_SNGL (1): Shunt voltage measurement, single
+'       BUSV_SNGL (2): Bus voltage measurement, single
+'       BOTH_SNGL (3): Shunt and vus voltage measurement, single
+'       STANDBY (4): Disable ADC
+'       SHUNTV_CONT (5): Shunt voltage measurements, continuous
+'       BUSV_CONT (6): Bus voltage measurements, continuous
+'       BOTH_CONT (7): Shunt and bus voltage measurements, continuous
+'   Any other value polls the chip and returns the current setting
+    curr_mode := 0
+    readreg(core#CONFIG, 1, @curr_mode)
+    case mode
+        SLEEP, SHUNTV_SNGL, BUSV_SNGL, BOTH_SNGL, STANDBY, SHUNTV_CONT, {
+}       BUSV_CONT, BOTH_CONT:
+        other:
+            return curr_mode & core#MODE_BITS
+
+    mode := ((curr_mode & core#MODE_MASK) | mode)
+    writereg(core#CONFIG, 1, @mode)
 
 PUB PowerData{}: pwr_adc
 ' Read power ADC data
