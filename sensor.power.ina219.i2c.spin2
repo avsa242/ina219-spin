@@ -161,7 +161,7 @@ PUB Current(): a
 ' Read current
 '   Returns: Current in milliamps
     readreg(core.CURRENT, 2, @a)
-    return ~~a
+    return (a signx 15)
 
 PUB CurrentScale(val=-2): curr_val
 ' Set current scale, in LSBs
