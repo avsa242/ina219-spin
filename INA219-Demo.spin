@@ -1,8 +1,8 @@
 {
     --------------------------------------------
-    Filename: INA219-Demo.spin2
+    Filename: INA219-Demo.spin
     Author: Jesse Burt
-    Description: Demo of the INA219 driver (P2 version)
+    Description: Demo of the INA219 driver
         * Power data output
     Started Sep 18, 2019
     Updated Jul 31, 2022
