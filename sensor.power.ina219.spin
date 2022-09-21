@@ -4,7 +4,7 @@
     Author: Jesse Burt
     Description: Driver of the TI INA219 current/power monitor IC
     Started Sep 18, 2019
-    Updated Jul 31, 2022
+    Updated Sep 21, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -318,7 +318,7 @@ PUB voltage_data{}: v
     v := 0
     readreg(core#BUS_VOLTAGE, 2, @v)
 
-PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' read nr_bytes from device into ptr_buff
     case reg_nr                                    ' validate register
         core#CONFIG..core#CALIBRATION:
@@ -333,7 +333,7 @@ PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
         other:
             return
 
-PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' write nr_bytes to device from ptr_buff
     case reg_nr
         core#CONFIG, core#CALIBRATION:
