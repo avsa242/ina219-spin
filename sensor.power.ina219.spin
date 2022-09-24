@@ -82,7 +82,7 @@ PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
             _addr_bits := ADDR_BITS << 1
             ' test device bus presence
             if i2c.present(SLAVE_WR | _addr_bits)
-                if (device_id{} == core#DEVID_RESP)
+                if (dev_id{} == core#DEVID_RESP)
                     return
     ' if this point is reached, something above failed
     ' Double check I/O pin assignments, connections, power
@@ -191,7 +191,7 @@ PUB current_scale(val): curr_val
             readreg(core#CALIBRATION, 2, @curr_val)
             return
 
-PUB device_id{}: id
+PUB dev_id{}: id
 ' Read device ID
 '   Returns: POR value of the configuration register
 '   NOTE: This method performs a soft-reset of the chip and reads the value of
