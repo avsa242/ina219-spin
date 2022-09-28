@@ -5,7 +5,7 @@
     Description: Demo of the INA219 driver
         * Power data output
     Started Sep 18, 2019
-    Updated Jul 31, 2022
+    Updated Sep 28, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -47,7 +47,7 @@ PUB main{}
 
     pwr.preset_320s_2a_100mohm{}
 
-    pwr.current_scale(4096)                     ' 0..65535
+    pwr.current_set_scale(4096)                 ' 0..65535
                                                 ' (must be >0 for current/power readings)
     demo{}
 
