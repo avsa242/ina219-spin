@@ -5,7 +5,7 @@
     Description: Driver of the TI INA219 current/power monitor IC (P2 version)
     Copyright (c) 2022
     Started Sep 18, 2019
-    Updated Sep 28, 2022
+    Updated Sep 29, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -90,8 +90,8 @@ PUB stop()
 PUB defaults()
 ' Factory default settings
 '   POR settings:
-'   bus_voltage_range(32)
-'   shunt_voltage_range(320)
+'   bus_voltage_rng(32)
+'   shunt_voltage_rng(320)
 '   bus_adc_res(12)
 '   shunt_adc_res(12)
 '   opmode(BOTH_CONT)
@@ -110,8 +110,8 @@ PUB preset_320s_2a_100mohm()
     _p_lsb := _i_lsb * 20
     _vmax_shunt := _i_max * _shunt_res
 
-    bus_voltage_range(32)
-    shunt_voltage_range(320)
+    bus_voltage_rng(32)
+    shunt_voltage_rng(320)
     shunt_adc_res(12)
     shunt_samples(1)
     bus_adc_res(12)
@@ -149,7 +149,7 @@ PUB bus_adc_res(adcres=-2): curr_res
     adcres := ((curr_res & core.BADC_MASK) | adcres) & core.CONFIG_MASK
     writereg(core.CONFIG, 2, @adcres)
 
-PUB bus_voltage_range(range=-2): curr_rng
+PUB bus_voltage_rng(range=-2): curr_rng
 ' Set bus voltage range
 '   Valid values: 16, *32
 '   Any other value polls the chip and returns the current setting
@@ -290,7 +290,7 @@ PUB shunt_voltage(): v
 '   Returns: Voltage in microvolts
     return adc2shunt_volts(shunt_voltage_data())
 
-PUB shunt_voltage_range(range=-2): curr_rng
+PUB shunt_voltage_rng(range=-2): curr_rng
 ' Set shunt voltage range, in millivolts
 '   Valid values: 40, 80, 160, *320
 '   Any other value polls the chip and returns the current setting
