@@ -5,7 +5,7 @@
     Description: Demo of the INA219 driver
         * Power data output
     Started Sep 18, 2019
-    Updated Sep 28, 2022
+    Updated Oct 16, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -28,9 +28,9 @@ CON
 
 OBJ
 
-    cfg : "core.con.boardcfg.flip"
+    cfg : "boardcfg.flip"
     ser : "com.serial.terminal.ansi"
-    pwr : "sensor.power.ina219"
+    sensor : "sensor.power.ina219"
     time: "time"
 
 PUB main{}
@@ -39,15 +39,15 @@ PUB main{}
     time.msleep(10)
     ser.clear{}
     ser.strln(string("Serial terminal started"))
-    if pwr.startx(SCL_PIN, SDA_PIN, I2C_FREQ, ADDR_BITS)
+    if sensor.startx(SCL_PIN, SDA_PIN, I2C_FREQ, ADDR_BITS)
         ser.strln(string("INA219 driver started"))
     else
         ser.strln(string("INA219 driver failed to start - halting"))
         repeat
 
-    pwr.preset_320s_2a_100mohm{}
+    sensor.preset_320s_2a_100mohm{}
 
-    pwr.current_set_scale(4096)                 ' 0..65535
+    sensor.current_set_scale(4096)                 ' 0..65535
                                                 ' (must be >0 for current/power readings)
     demo{}
 
