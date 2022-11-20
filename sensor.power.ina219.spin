@@ -319,9 +319,9 @@ PUB voltage_data{}: v
     v := 0
     readreg(core#BUS_VOLTAGE, 2, @v)
 
-PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' read nr_bytes from device into ptr_buff
-    case reg_nr                                    ' validate register
+    case reg_nr                                 ' validate register
         core#CONFIG..core#CALIBRATION:
             cmd_pkt.byte[0] := SLAVE_WR | _addr_bits
             cmd_pkt.byte[1] := reg_nr
@@ -334,7 +334,7 @@ PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
         other:
             return
 
-PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' write nr_bytes to device from ptr_buff
     case reg_nr
         core#CONFIG, core#CALIBRATION:
