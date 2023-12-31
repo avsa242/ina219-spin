@@ -162,7 +162,7 @@ PUB bus_adc_res(adcres): curr_res
             curr_res := (curr_res >> core#BADC) & core#BADC_BITS
             return (curr_res + 9)
 
-    adcres := ((curr_res & core#BADC_MASK) | adcres) & core#CONFIG_MASK
+    adcres := ((curr_res & core#BADC_MASK) | adcres)
     writereg(core#CONFIG, 2, @adcres)
 
 PUB bus_voltage_rng(range): curr_rng
@@ -178,7 +178,7 @@ PUB bus_voltage_rng(range): curr_rng
             curr_rng := (curr_rng >> core#BRNG) & 1
             return lookupz(curr_rng: 16, 32)
 
-    range := ((curr_rng & core#BRNG_MASK) | range) & core#CONFIG_MASK
+    range := ((curr_rng & core#BRNG_MASK) | range)
     writereg(core#CONFIG, 2, @range)
 
 PUB current_data{}: a
@@ -258,7 +258,7 @@ PUB shunt_adc_res(adc_res): curr_res
             curr_res := (curr_res >> core#SADC) & core#SADC_BITS
             return (curr_res + 9)
 
-    adc_res := ((curr_res & core#SADC_MASK) | adc_res) & core#CONFIG_MASK
+    adc_res := ((curr_res & core#SADC_MASK) | adc_res)
     writereg(core#CONFIG, 2, @adc_res)
 
 PUB shunt_resistance(r_shunt): curr_res
@@ -292,7 +292,7 @@ PUB shunt_samples(samples): curr_smp
             else
                 return 0
 
-    samples := ((curr_smp & core#SADC_MASK) | samples) & core#CONFIG_MASK
+    samples := ((curr_smp & core#SADC_MASK) | samples)
     writereg(core#CONFIG, 2, @samples)
 
 PUB shunt_voltage_data{}: adc_word
@@ -319,7 +319,7 @@ PUB shunt_voltage_rng(range): curr_rng
             curr_rng := (curr_rng >> core#PG) & core#PG_BITS
             return lookupz(curr_rng: 40, 80, 160, 320)
 
-    range := ((curr_rng & core#PG_MASK) | range) & core#CONFIG_MASK
+    range := ((curr_rng & core#PG_MASK) | range)
     writereg(core#CONFIG, 2, @range)
 
 PUB voltage_data{}: v
@@ -356,7 +356,6 @@ PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
             i2c.stop{}
         other:
             return
-
 
 DAT
 {
