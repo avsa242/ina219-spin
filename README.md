@@ -7,7 +7,7 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the TI INA2
 
 ## Salient Features
 
-* I2C connection at up to 400kHz
+* I2C connection at up to 1MHz (unenforced), with alternate address support
 * Read shunt voltage
 * Read bus voltage
 * Read power measured by the chip
@@ -18,7 +18,7 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the TI INA2
 
 P1/SPIN1:
 * spin-standard-library
-* P1/SPIN1: 1 extra core/cog for the PASM I2C engine
+* P1/SPIN1: 1 extra core/cog for the PASM I2C engine (none if the bytecode-based engine is used)
 * sensor.power.common.spinh (provided by spin-standard-library)
 
 P2/SPIN2:
@@ -27,16 +27,15 @@ P2/SPIN2:
 
 ## Compiler Compatibility
 
-| Processor | Language | Compiler               | Backend     | Status                |
-|-----------|----------|------------------------|-------------|-----------------------|
-| P1        | SPIN1    | FlexSpin (5.9.14-beta) | Bytecode    | OK                    |
-| P1        | SPIN1    | FlexSpin (5.9.14-beta) | Native code | OK                    |
-| P1        | SPIN1    | OpenSpin (1.00.81)     | Bytecode    | Untested (deprecated) |
-| P2        | SPIN2    | FlexSpin (5.9.14-beta) | NuCode      | FTBFS                 |
-| P2        | SPIN2    | FlexSpin (5.9.14-beta) | Native code | OK                    |
-| P1        | SPIN1    | Brad's Spin Tool (any) | Bytecode    | Unsupported           |
-| P1, P2    | SPIN1, 2 | Propeller Tool (any)   | Bytecode    | Unsupported           |
-| P1, P2    | SPIN1, 2 | PNut (any)             | Bytecode    | Unsupported           |
+| Processor | Language | Compiler               | Backend      | Status                |
+|-----------|----------|------------------------|--------------|-----------------------|
+| P1        | SPIN1    | FlexSpin (6.5.0)       | Bytecode     | OK                    |
+| P1        | SPIN1    | FlexSpin (6.5.0)       | Native/PASM  | OK                    |
+| P2        | SPIN2    | FlexSpin (6.5.0)       | NuCode       | OK                    |
+| P2        | SPIN2    | FlexSpin (6.5.0)       | Native/PASM2 | OK                    |
+
+(other versions or toolchains not listed are __not supported__, and _may or may not_ work)
+
 
 ## Limitations
 
