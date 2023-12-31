@@ -80,14 +80,14 @@ PUB start(): status
 PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS=DEF_ADDR): status
 ' Start using custom settings
     ' validate I/O pins, bus speed and I2C address option bits
-    if lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) and I2C_HZ <= core.I2C_MAX_FREQ and {
-}   lookdown(ADDR_BITS: %0000..%1111)
-        if (status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ))
+    if (    lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) and ...
+            lookdown(ADDR_BITS: %0000..%1111) )
+        if ( status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ) )
             waitms(1)
             _addr_bits := ADDR_BITS << 1
             ' test device bus presence
-            if (i2c.present(SLAVE_WR | _addr_bits))
-                if (dev_id() == core.DEVID_RESP)
+            if ( i2c.present(SLAVE_WR | _addr_bits) )
+                if ( dev_id() == core.DEVID_RESP )
                     return
     ' if this point is reached, something above failed
     ' Double check I/O pin assignments, connections, power
@@ -220,8 +220,7 @@ PUB opmode(mode): curr_mode
     curr_mode := 0
     readreg(core.CONFIG, 1, @curr_mode)
     case mode
-        SLEEP, SHUNTV_SNGL, BUSV_SNGL, BOTH_SNGL, STANDBY, SHUNTV_CONT, {
-}       BUSV_CONT, BOTH_CONT:
+        SLEEP, SHUNTV_SNGL, BUSV_SNGL, BOTH_SNGL, STANDBY, SHUNTV_CONT, BUSV_CONT, BOTH_CONT:
         other:
             return curr_mode & core.MODE_BITS
 
@@ -355,7 +354,7 @@ PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 
 DAT
 {
-Copyright (c) 2022 Jesse Burt
+Copyright (c) 2023 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
