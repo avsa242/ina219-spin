@@ -5,7 +5,7 @@
     Description: Driver of the TI INA219 current/power monitor IC
     Copyright (c) 2022
     Started Sep 18, 2019
-    Updated Nov 13, 2022
+    Updated Dec 31, 2023
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -51,11 +51,17 @@ CON
     BUSV_CONT       = 6
     BOTH_CONT       = 7
 
+    { default I/O settings; these can be overridden in the parent object }
+    SCL             = DEF_SCL
+    SDA             = DEF_SDA
+    I2C_FREQ        = DEF_HZ
+    I2C_ADDR        = DEF_ADDR
+
 OBJ
 
-    i2c : "com.i2c"
-    core: "core.con.ina219"
-    time: "time"
+    i2c:    "com.i2c"
+    core:   "core.con.ina219"
+    time:   "time"
 
 VAR
 
@@ -68,10 +74,9 @@ VAR
 PUB null{}
 ' This is not a top-level object
 
-PUB start{}: status
-' Start using "standard" Propeller I2C pins and 100kHz
-'   Default slave address
-    return startx(DEF_SCL, DEF_SDA, DEF_HZ, DEF_ADDR)
+PUB start(): status
+' Start using default I/O settings
+    return startx(SCL, SDA, I2C_FREQ, I2C_ADDR)
 
 PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
 ' Start using custom settings
