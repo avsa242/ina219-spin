@@ -59,7 +59,11 @@ CON
 
 OBJ
 
+#ifdef INA219_I2C_BC
+    i2c:    "com.i2c.nocog"
+#else
     i2c:    "com.i2c"
+#endif
     core:   "core.con.ina219"
     time:   "time"
 

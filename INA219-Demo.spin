@@ -9,6 +9,9 @@
     See end of file for terms of use.
     --------------------------------------------
 }
+' Uncomment the below lines to use the bytecode-based I2C engine
+'#define INA219_I2C_BC
+'#pragma exportdef(INA219_I2C_BC)
 
 CON
 
