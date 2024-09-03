@@ -37,6 +37,7 @@ CON
         BADC_MASK       = (BADC_BITS << BADC) ^ CONFIG_MASK
         SADC_MASK       = (SADC_BITS << SADC) ^ CONFIG_MASK
         MODE_MASK       = MODE_BITS ^ CONFIG_MASK
+        SOFT_RESET      = (1 << RST)
 
     SHUNT_VOLTAGE       = $01   'RO
 
