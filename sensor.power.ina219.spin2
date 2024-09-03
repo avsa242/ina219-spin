@@ -331,36 +331,35 @@ PUB voltage_data(): v
     v := readreg(core.BUS_VOLTAGE)
 
 
-PRI readreg(reg_nr): v | cmd_pkt
+PRI readreg(reg_nr): v | byte cmd_pkt[2]
 ' read nr_bytes from device into ptr_buff
     case reg_nr                                 ' validate register
         core.CONFIG..core.CALIBRATION:
-            cmd_pkt.byte[0] := SLAVE_WR | _addr_bits
-            cmd_pkt.byte[1] := reg_nr
+            cmd_pkt[0] := SLAVE_WR | _addr_bits
+            cmd_pkt[1] := reg_nr
             i2c.start()
-            'i2c.wrblock_lsbf(@cmd_pkt, 2)
-            i2c.wrword_lsbf(cmd_pkt)
+            i2c.wrblock_lsbf(@cmd_pkt, 2)
             i2c.start()
             i2c.write(SLAVE_RD | _addr_bits)
-            v := i2c.rdword_msbf(i2c.NAK)'i2c.rdblock_msbf(ptr_buff, 2, i2c.NAK)
+            v := 0
+            i2c.rdblock_msbf(@v, 2, i2c.NAK)
             i2c.stop()
             return v                            ' return data read from reg
         other:
             return -1                           ' invalid reg
 
 
-PRI writereg(reg_nr, val): s | cmd_pkt
+PRI writereg(reg_nr, val): s | byte cmd_pkt[4]
 ' write nr_bytes to device from ptr_buff
     case reg_nr
         core.CONFIG, core.CALIBRATION:
-            cmd_pkt.byte[0] := SLAVE_WR | _addr_bits
-            cmd_pkt.byte[1] := reg_nr
-            cmd_pkt.byte[2] := val.byte[1]
-            cmd_pkt.byte[3] := val.byte[0]
+            cmd_pkt[0] := SLAVE_WR | _addr_bits
+            cmd_pkt[1] := reg_nr
+            cmd_pkt[2] := val.byte[1]
+            cmd_pkt[3] := val.byte[0]
 
             i2c.start()
-            'i2c.wrblock_lsbf(@cmd_pkt, 4)
-            s := i2c.wrlong_lsbf(cmd_pkt)
+            s := i2c.wrblock_lsbf(@cmd_pkt, 4)
             i2c.stop()
             return s                            ' return ACK/NAK from sensor
         other:
