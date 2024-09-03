@@ -1,13 +1,12 @@
 {
-    --------------------------------------------
-    Filename: core.con.ina219.spin
-    Author: Jesse Burt
-    Description: INA219-specific low-level constants
-    Copyright (c) 2021
-    Started Sep 18, 2019
-    Updated Aug 20, 2021
-    See end of file for terms of use.
-    --------------------------------------------
+----------------------------------------------------------------------------------------------------
+    Filename:       core.con.ina219.spin
+    Description:    INA219-specific constants
+    Author:         Jesse Burt
+    Started:        Sep 18, 2019
+    Updated:        Sep 3, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
@@ -54,12 +53,14 @@ CON
     CALIBRATION         = $05
     CALIBRATION_MASK    = $FFFE 'bit 0 is RO
 
-PUB null{}
+
+PUB null()
 ' This is not a top-level object
+
 
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

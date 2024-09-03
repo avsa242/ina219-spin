@@ -1,13 +1,13 @@
 {
-    --------------------------------------------
-    Filename: INA219-Demo.spin
-    Author: Jesse Burt
-    Description: Demo of the INA219 driver
+----------------------------------------------------------------------------------------------------
+    Filename:       INA219-Demo.spin
+    Description:    Demo of the INA219 driver
         * Power data output
-    Started Sep 18, 2019
-    Updated Dec 31, 2023
-    See end of file for terms of use.
-    --------------------------------------------
+    Author:         Jesse Burt
+    Started:        Sep 18, 2019
+    Updated:        Sep 3, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 ' Uncomment the below lines to use the bytecode-based I2C engine
 '#define INA219_I2C_BC
@@ -15,18 +15,42 @@
 
 CON
 
-    _clkmode        = cfg#_clkmode
-    _xinfreq        = cfg#_xinfreq
+    _clkmode        = xtal1+pll16x
+    _xinfreq        = 5_000_000
 
 
 OBJ
 
-    cfg:    "boardcfg.flip"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
     sensor: "sensor.power.ina219" | SCL=28, SDA=29, I2C_FREQ=1_000_000, I2C_ADDR=%0000
     time:   "time"
 
+
 PUB main()
+
+    setup()
+
+    repeat
+        ser.pos_xy(0, 3)
+        ' scale sensor data down from microvolts/amps/watts and show it on the terminal
+        ser.printf2(@"Voltage: %d.%06.6dv\n\r", (sensor.voltage() / VF), ...    ' display whole
+                                                (sensor.voltage() // VF))       ' display part
+
+        ser.printf2(@"Current: %d.%06.6dA\n\r", (sensor.current() / CF), ...
+                                                ||(sensor.current() // CF))
+
+        ser.printf2(@"Power: %d.%06.6dW\n\r",   (sensor.power() / PF), ...
+                                                (sensor.power() // PF))
+
+CON
+
+    { scaling factors for display }
+    VF  = 1000000
+    CF  = 1000000
+    PF  = 1000000
+
+
+PUB setup()
 
     ser.start()
     time.msleep(30)
@@ -43,13 +67,11 @@ PUB main()
 
     sensor.current_set_scale(4096)              ' 0..65535
                                                 ' (must be >0 for current/power readings)
-    demo()
 
-#include "powerdemo.common.spinh"               ' pull in code common to all power sensor demos
 
 DAT
 {
-Copyright (c) 2023 Jesse Burt
+Copyright (c) 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
